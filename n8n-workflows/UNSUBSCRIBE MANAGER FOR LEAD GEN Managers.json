@@ -1,0 +1,665 @@
+{
+  "name": "UNSUBSCRIBE MANAGER FOR LEAD GEN",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 5,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "filters": {
+          "includeSpamTrash": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1536,
+        -16
+      ],
+      "id": "5bdca40b-6c64-4881-8b41-07852ed4d2fe",
+      "name": "Watch New replies",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oVrbIOoGPQdu5E8M",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 20,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1016,
+        208
+      ],
+      "id": "50918ed9-e4b1-4dbf-96d5-682a388266e8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6gPoRib5ovHjBGrs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a message intent detector for outreach emails. \nYour job is to determine if this message means the sender wants to stop receiving emails or unsubscribe.\n\nReply strictly with one word:\n- \"unsubscribe\" → if they indicate they don't want further contact (even indirectly)\n- \"keep\" → if they are interested, neutral, or unrelated.\n\nMessage:\n{{ $json.snippet }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -1088,
+        -16
+      ],
+      "id": "46de4479-6008-48f0-8e01-006049099d47",
+      "name": "DETECT INTENT",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let aiResponse = \"\";\n\n  const json = item.json;\n  if (json.message?.[0]?.content) {\n    aiResponse = json.message[0].content;\n  } else if (json.data) {\n    aiResponse = json.data;\n  } else if (json.choices?.[0]?.message?.content) {\n    aiResponse = json.choices[0].message.content;\n  } else if (json.text) {\n    aiResponse = json.text;\n  }\n\n  aiResponse = aiResponse?.trim().toLowerCase() || \"\";\n\n  const isUnsubscribe =\n    aiResponse.includes(\"unsubscribe\") ||\n    aiResponse.includes(\"remove me\") ||\n    aiResponse.includes(\"opt out\") ||\n    aiResponse.includes(\"stop emailing\") ||\n    aiResponse.includes(\"do not contact\");\n\n  return {\n    json: {\n      ...json,\n      aiResponse,\n      isUnsubscribe\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        -16
+      ],
+      "id": "f6f0e406-92b1-46c3-99cd-cbebdc1773ba",
+      "name": "NORMALIZE AI OUTPUT",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "39373655-d4d7-4e59-963f-b3929d2d3be1",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "unsubscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        -16
+      ],
+      "id": "6129d394-b180-4e0f-a7cd-e870a835258c",
+      "name": "UNSUBSCRIBE?",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "EMAIL",
+              "lookupValue": "={{ \n  $('Watch New replies').item.json.From.match(/<([^>]+)>/)?.[1]?.trim().toLowerCase() || \n  $('Watch New replies').item.json.From.trim().toLowerCase() \n}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        -16
+      ],
+      "id": "a8bb676b-d7f6-4298-a81c-37eefcbe9dae",
+      "name": "CHECK MAIN SHEET",
+      "retryOnFail": true,
+      "credentials": {
+        "googleApi": {
+          "id": "IYdEnKv50q6hFVCM",
+          "name": "Google Service Account account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -16
+      ],
+      "id": "3af131ad-8ab6-4580-995e-27cbe642375d",
+      "name": "Delete rows or columns from sheet",
+      "retryOnFail": true,
+      "credentials": {
+        "googleApi": {
+          "id": "IYdEnKv50q6hFVCM",
+          "name": "Google Service Account account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "MESSAGE": "={{ $('Watch New replies').item.json.snippet }}",
+            "DATE": "={{ new Date().toISOString().split('T')[0] }}",
+            "EMAIL": "={{ $('IS EMAIL THERE?').first().json.Email }}",
+            "WHERE": "UNSUBSCRIBE MESSAGE REPLY"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DATE",
+              "displayName": "DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "WHERE",
+              "displayName": "WHERE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "MESSAGE",
+              "displayName": "MESSAGE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "704a27aa-acd9-46a8-a98b-1cdedb33bacc",
+      "name": "ADD TO UNSUBSCRIBE",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "credentials": {
+        "googleApi": {
+          "id": "IYdEnKv50q6hFVCM",
+          "name": "Google Service Account account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Watch New replies').item.json.id }}",
+        "labelIds": [
+          "Label_2476288409640151649"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1056,
+        -16
+      ],
+      "id": "66130a65-c9a1-4776-a89f-0eefc7930486",
+      "name": "ADD UNSUBSCRIBE TO EMAIL",
+      "webhookId": "cb67cf84-e3b3-4c28-819d-ffd3f2a24ca4",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oVrbIOoGPQdu5E8M",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        -16
+      ],
+      "id": "103764a5-861a-406d-b022-60918e94bd40",
+      "name": "Get unsubscribe sheet",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "IYdEnKv50q6hFVCM",
+          "name": "Google Service Account account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "//----------------------------------------------------\n// Inputs\n//----------------------------------------------------\nconst unsubscribed = $items(\"Get unsubscribe sheet\").map(i => \n  (i.json.Email || \"\").toLowerCase().trim()\n);\nconst currentEmail = $('Watch New replies').item.json.From\n  .match(/<([^>]+)>/)?.[1]?.toLowerCase().trim() || \n  $('Watch New replies').item.json.From.toLowerCase().trim();\n\n//----------------------------------------------------\n// Check and decide\n//----------------------------------------------------\nif (!unsubscribed.includes(currentEmail)) {\n  return [{ json: { Email: currentEmail}}];\n} else {\n  return []; // Skip if already in the sheet\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "f65d8a58-2637-4993-bd98-d1b5660fe22b",
+      "name": "IS EMAIL THERE?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9d25b65d-f6c5-4319-abcc-85d7a95b6ae5",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "={{ $('Get unsubscribe sheet').item.json.EMAIL }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        -16
+      ],
+      "id": "e25c6d48-6caf-417f-8c1d-3a6c7eba7eef",
+      "name": "IF IT ALREADY EXISTS, DO NOTHING"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "975c5909-34b1-40b5-8ba7-4c566323e68a",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "=your personal email",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1312,
+        -16
+      ],
+      "id": "1a61a268-229a-4255-b277-9e4ff64ed799",
+      "name": "If",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## GMAIL\nYou can use any email provider. GMAIL is used in this instance.\n\nConnect using OAuth Credentials\n\nIt is a trigger set to run anytime a new email is received.\n\nInclude **SPAM**; to catch every email and **TRASH**; in the event you delete it before the node runs.",
+        "height": 816,
+        "width": 288,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1632,
+        -672
+      ],
+      "typeVersion": 1,
+      "id": "06a60a31-296f-4e59-a816-f344632bcf84",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Here, I check if the replies are from my other email accounts; no need to work on them. You can also exclude any other account by using **\"OR\"**",
+        "height": 400,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1328,
+        -432
+      ],
+      "typeVersion": 1,
+      "id": "951e8554-b296-443e-8194-f508d560a72a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## OPEN AI  (Prompt included)\n**Detect Intent** My AI checks the response and summaries in two words ** \"Unsubscribe\" or \"Keep\" ** if the prospect is interested in what I am selling or if they'd rather not receive more emails from me.\n\n## NORMALIZE AI OUTPUT\n\nThis is like a double guard from the output the AI provides; the code ensures only two words are passed on to the **IF** node",
+        "height": 288,
+        "width": 528,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1056,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "0eddffb3-e1f0-4090-b291-45c0ba7c723a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## UNSUBSCRIBE\n**Checks** Is this email already in the unsubscribe sheet?\n\n**Yes** - Do Nothing\n**No** Add to the Unsubscribe sheet\n\n## MAIN SHEET\n\nThen check the main sheet and delete from there. **safest option** or you could update the row with a new column stating \"unsubscribe\" and ensure when sending emails, that is checked first.",
+        "height": 288,
+        "width": 656,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "00b78ca6-f150-4f02-86fb-3909858304c8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## TAGS in GMAIL\nAdd an unsubscribe tag to GMAIL (optional)",
+        "height": 176,
+        "width": 272,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        928,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "5961ac95-c5c3-43d1-9779-4ad56475bf1e",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Watch New replies": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "DETECT INTENT",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DETECT INTENT": {
+      "main": [
+        [
+          {
+            "node": "NORMALIZE AI OUTPUT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NORMALIZE AI OUTPUT": {
+      "main": [
+        [
+          {
+            "node": "UNSUBSCRIBE?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UNSUBSCRIBE?": {
+      "main": [
+        [
+          {
+            "node": "Get unsubscribe sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHECK MAIN SHEET": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ADD TO UNSUBSCRIBE": {
+      "main": [
+        [
+          {
+            "node": "CHECK MAIN SHEET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet": {
+      "main": [
+        [
+          {
+            "node": "ADD UNSUBSCRIBE TO EMAIL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get unsubscribe sheet": {
+      "main": [
+        [
+          {
+            "node": "IS EMAIL THERE?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IS EMAIL THERE?": {
+      "main": [
+        [
+          {
+            "node": "IF IT ALREADY EXISTS, DO NOTHING",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF IT ALREADY EXISTS, DO NOTHING": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ADD TO UNSUBSCRIBE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "DETECT INTENT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveExecutionProgress": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "UNrVZbiiSpgbbt9H",
+    "timeSavedPerExecution": 5,
+    "timezone": "Africa/Lagos"
+  },
+  "versionId": "90360494-5f55-4d4e-984e-69c07aa192d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  },
+  "id": "P97H32MkT4tqvn46",
+  "tags": [
+    {
+      "updatedAt": "2025-10-30T14:01:29.686Z",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "id": "vLLcwhiSm3lgtjpI",
+      "name": "PORTFOLIO"
+    }
+  ]
+}
