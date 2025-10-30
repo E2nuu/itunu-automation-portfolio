@@ -1,4 +1,7 @@
 # 📊 EMA Live + Historical Signals
+[![Platform](https://img.shields.io/badge/Platform-MetaTrader%205-blue?logo=metatrader)]()
+[![Category](https://img.shields.io/badge/Type-Trading%20Automation-green)]()
+[![Language](https://img.shields.io/badge/Language-MQL5-lightgrey)]()
 
 This **MQL5 indicator** draws Buy/Sell vertical lines when **price breaks above or below EMA(70)** on the M5 chart,  
 and automatically backfills signals for the **past 3 months**.  
@@ -38,6 +41,12 @@ It also includes a **yellow EMA-follower line** that moves dynamically across al
 - Change `EMAPeriod` to adapt for swing, scalp, or long-term charts.  
 - Set `LookbackDays` to fine-tune how much historical data to draw.  
 - You can modify the line colors and thickness in the code for visual clarity.
+
+
+**Author:** Itunu  
+**Language:** MQL5  
+**Category:** Trading Automations  
+**Platform:** MetaTrader 5  
 
 ---
 
