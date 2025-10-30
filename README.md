@@ -24,7 +24,7 @@ Python and automation scripts designed for algorithmic trading and real-time mar
   Draws Buy/Sell lines when EMA(70) is broken live and backfills signals for the last 90 days.
 
 
-> More n8n workflows coming soon...
+> More trading bots coming soon...
 
 ---
 
