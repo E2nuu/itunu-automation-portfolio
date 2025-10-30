@@ -8,7 +8,7 @@ This is my personal collection of **automation projects** — built to help busi
 ## 🧩 n8n Workflows
 Automations created using [n8n.io](https://n8n.io), an open-source automation platform.
 
--[Unsubscribe Manager for Lead Generation](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows)
+- [**Unsubscribe Manager for Lead Generation**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows)
   Automatically detects unsubscribe replies in your Gmail outreach and updates Google Sheets to keep your lists clean.
 
 > More n8n workflows coming soon...
@@ -18,7 +18,10 @@ Automations created using [n8n.io](https://n8n.io), an open-source automation pl
 ## 💹 Trading Bots
 Python and automation scripts designed for algorithmic trading and real-time market tracking.
 
-*(Coming soon...)*
+- [**EMA Cross Signals (Trading Automation)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-cross-signals)  
+  MetaTrader 5 indicator that visualizes EMA crossovers and retests for precise trend confirmation.
+
+> More n8n workflows coming soon...
 
 ---
 
