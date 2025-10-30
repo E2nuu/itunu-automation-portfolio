@@ -20,6 +20,9 @@ Python and automation scripts designed for algorithmic trading and real-time mar
 
 - [**EMA Cross Signals (Trading Automation)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-cross-signals)  
   MetaTrader 5 indicator that visualizes EMA crossovers and retests for precise trend confirmation.
+- [**EMA Live + Historical Signals**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-live-historical-signals)  
+  Draws Buy/Sell lines when EMA(70) is broken live and backfills signals for the last 90 days.
+
 
 > More n8n workflows coming soon...
 
