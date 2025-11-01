@@ -1,0 +1,209 @@
+{
+  "id": "",
+  "meta": {
+    "instanceId": "",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "ERROR WORKFLOWS _Portfolio",
+  "tags": [
+    {
+      "id": "",
+      "name": "PORTFOLIO",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "updatedAt": "2025-10-30T14:01:29.686Z"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [
+        0,
+        -96
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.slack",
+      "position": [
+        448,
+        -192
+      ],
+      "webhookId": "",
+      "parameters": {
+        "text": "= {{ $workflow.name }}ERROR\n\n{{ $json.message }}",
+        "user": {
+          "__rl": true,
+          "mode": "username",
+          "value": ""
+        },
+        "select": "user",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      },
+      "retryOnFail": true,
+      "typeVersion": 2.3
+    },
+    {
+      "id": "",
+      "name": "Code in JavaScript",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        224,
+        -192
+      ],
+      "parameters": {
+        "jsCode": "// Extract error info\nconst errorData = $json;\n\n// Compose a readable message\nconst message = `\n❌ *Workflow Failed!*\n*Workflow:* ${errorData.workflow.name}\n*Workflow ID:* ${errorData.workflow.id}\n*Node:* ${errorData.execution?.lastNodeExecuted || 'Unknown Node'}\n*Error Message:* ${errorData.execution?.error?.message || 'No message'}\n*Execution ID:* ${errorData.execution.id}\n*Time:* ${new Date().toLocaleString()}\n\n_Debug it here:_ https://yours.com/execution/${errorData.execution.id}\n`;\n\nreturn [{ message }];\n"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "",
+      "name": "Code for GMAIL",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const errorData = $json;\n\n// Safely extract error details\nconst workflowName = errorData.workflow?.name || \"Unknown Workflow\";\nconst workflowId = errorData.workflow?.id || \"N/A\";\nconst nodeName = errorData.execution?.lastNodeExecuted || \"Unknown Node\";\nconst errorMessage = errorData.execution?.error?.message || \"No error message provided.\";\nconst executionId = errorData.execution?.id || \"N/A\";\nconst time = new Date().toLocaleString();\n\n// Replace this with your actual n8n URL\nconst n8nURL = \"https://yours.com\";\n\nconst htmlMessage = `\n  <div style=\"font-family: Arial, sans-serif; color: #333;\">\n    <h2 style=\"color: #e63946;\">❌ Workflow Execution Failed</h2>\n    <p><b>Workflow:</b> ${workflowName}</p>\n    <p><b>Workflow ID:</b> ${workflowId}</p>\n    <p><b>Node:</b> ${nodeName}</p>\n    <p><b>Error Message:</b> ${errorMessage}</p>\n    <p><b>Execution ID:</b> ${executionId}</p>\n    <p><b>Time:</b> ${time}</p>\n    <br>\n    <a href=\"${n8nURL}/execution/${executionId}\" \n       style=\"background-color:#1d72b8;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;\">\n       🔍 View Execution in n8n\n    </a>\n    <br><br>\n    <p style=\"font-size:12px;color:#888;\">This is an automated error alert from your n8n instance.</p>\n  </div>\n`;\n\nreturn [{ htmlMessage }];\n"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -144,
+        -640
+      ],
+      "parameters": {
+        "width": 272,
+        "height": 624,
+        "content": "## ERROR TRIGGER \n**TRIGGER** \n\nEvery workflow you create, ensure in it's settings, you connect this workflow to it so you can receive error notifications about the workflow via **Slack** or **Gmail** as shown here, or any other service you choose to connect later."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        144,
+        -640
+      ],
+      "parameters": {
+        "color": 3,
+        "width": 528,
+        "height": 784,
+        "content": "## Code to Parse Information\n**Two code nodes sending the error info to both Slack and Gmail.**\n\nIt has the following info being parsed, you can add or remove from this.\n\n\n❌ **Workflow Failed!**\n*Workflow name* \n*Workflow ID*\n*Failed Node*\n*Error Message* \n*Execution ID* \n*Time it Failed* \n\n**CODE IS INCLUDED IN THE NODES**"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        -848
+      ],
+      "parameters": {
+        "width": 480,
+        "height": 624,
+        "content": "## Optional Enhancements \n**You can enhance this workflow follow by adding these** \n\n*1* Add a **\"Webhook Alert\"** Node\n→ To send errors to tools like Notion, Discord, or an API endpoint.\n\n*2* Add a Severity Detection System\n**CODE**\nconst level = errorMessage.match(/timeout|failed|critical/i) ? \"high\" : \"low\";\n\n\n*3* Include Workflow Execution Duration\n\n**CODE**\nconst duration = errorData.execution?.finishedAt && errorData.execution?.startedAt\n  ? (new Date(errorData.execution.finishedAt) - new Date(errorData.execution.startedAt)) / 1000\n  : 'N/A';\n\n\n*4* Send Weekly Error Summary\n→ Use this workflow’s data as input to another one that summarizes all recent failures."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "",
+      "name": "Send a message2",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        448,
+        0
+      ],
+      "webhookId": "",
+      "parameters": {
+        "sendTo": "yours@email.com",
+        "message": "={{ $json.htmlMessage }}\n<br>\n {{ $('Error Trigger').item.json.execution.lastNodeExecuted }} HAS AN ERROR, CHECK!",
+        "options": {},
+        "subject": "={{ $workflow.name }} ERROR"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      },
+      "retryOnFail": true,
+      "typeVersion": 2.1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "timezone": "Africa/Lagos",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "UNrVZbiiSpgbbt9H",
+    "availableInMCP": false,
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none"
+  },
+  "versionId": "",
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code for GMAIL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code for GMAIL": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
