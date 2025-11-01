@@ -11,6 +11,10 @@ Automations created using [n8n.io](https://n8n.io), an open-source automation pl
 - [**Unsubscribe Manager for Lead Generation**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows)
   Automatically detects unsubscribe replies in your Gmail outreach and updates Google Sheets to keep your lists clean.
 
+- [**Error Notification Workflow (Slack + Gmail)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/error-notifications)  
+  Instantly alerts you in **Slack** and **Gmail** when any n8n workflow fails, including details like workflow name, failed node, error message, and execution link.  
+  *(Perfect for teams who want to stay on top of automation errors in real time.)*
+
 > More n8n workflows coming soon...
 
 ---
@@ -25,13 +29,6 @@ Python and automation scripts designed for algorithmic trading and real-time mar
 
 
 > More trading bots coming soon...
-
----
-
-## 🤖 AI Integrations
-Projects connecting APIs and AI models for smart, data-driven automations.
-
-*(Coming soon...)*
 
 ---
 
