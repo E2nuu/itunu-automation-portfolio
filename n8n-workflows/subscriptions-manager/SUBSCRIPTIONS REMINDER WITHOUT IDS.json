@@ -1,0 +1,1159 @@
+{
+  "name": "SUBSCRIPTIONS REMINDER",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        1216
+      ],
+      "id": "f4473a03-2258-44b0-b5ac-a4396bbeaa87",
+      "name": "Sub O1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "SUBSCRIPTIONS",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        1216
+      ],
+      "id": "",
+      "name": "",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔁 Subscription Date Processor (always outputs daysLeft)\n// Works with sheets of renewals or subscriptions\n\n// --- Helpers ---\nfunction findKey(obj, patterns) {\n  const keys = Object.keys(obj || {});\n  const lower = keys.map(k => k.toLowerCase());\n  for (const p of patterns) {\n    const pat = p.toLowerCase();\n    const idx = lower.findIndex(k => k.includes(pat));\n    if (idx !== -1) return keys[idx];\n  }\n  return null;\n}\n\nfunction tryParseDate(s) {\n  if (!s) return null;\n  s = String(s).trim().replace(/\\s+/g, \" \").replace(/\\./g, \"-\").replace(/\\//g, \"-\");\n  let m;\n  if ((m = s.match(/^(\\d{1,2})-(\\d{1,2})-(\\d{4})$/))) {\n    const [_, d, mo, y] = m;\n    return safeDate(parseInt(y,10), parseInt(mo,10)-1, parseInt(d,10));\n  }\n  if ((m = s.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/))) {\n    const [_, y, mo, d] = m;\n    return safeDate(parseInt(y,10), parseInt(mo,10)-1, parseInt(d,10));\n  }\n  const d = new Date(s);\n  if (!isNaN(d.getTime())) return safeDate(d.getFullYear(), d.getMonth(), d.getDate());\n  return null;\n}\n\nfunction safeDate(y, m, d) {\n  const dt = new Date(y, m, d);\n  return isNaN(dt.getTime()) ? null : dt;\n}\n\nfunction dateOnly(dt) {\n  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());\n}\n\n// --- Detect relevant columns dynamically ---\nconst sample = items[0] ? items[0].json : {};\nconst serviceKey = findKey(sample, [\"service\", \"name\", \"product\"]);\nconst renewalKey = findKey(sample, [\"renew\", \"renewal\", \"expiry\", \"expiration\", \"expiration date\", \"renewal date\", \"renewal_date\", \"renewaldate\", \"renew_date\"]);\n\nif (!renewalKey) {\n  return [\n    {\n      json: {\n        error: \"no_renewal_column_found\",\n        message: \"Could not locate a renewal/expiry column — check sheet headers\",\n        sampleHeaders: Object.keys(sample)\n      }\n    }\n  ];\n}\n\n// --- Main processing ---\nconst today = dateOnly(new Date());\nconst out = [];\nconst debug = { parsed: 0, invalidDate: 0, total: items.length, failures: [] };\n\nfor (const it of items) {\n  const row = it.json || {};\n  const rawRenewal = row[renewalKey] ? String(row[renewalKey]).trim() : \"\";\n  const serviceName = (serviceKey && row[serviceKey]) ? String(row[serviceKey]).trim() : (row[\"SERVICE\"] || row[\"service\"] || \"Unknown Service\");\n\n  if (!rawRenewal) continue;\n\n  const parsed = tryParseDate(rawRenewal);\n  if (!parsed) {\n    debug.invalidDate++;\n    debug.failures.push({ service: serviceName, rawRenewal, reason: \"unparsed_date\" });\n    continue;\n  }\n\n  debug.parsed++;\n  const renewalDate = dateOnly(parsed);\n  const diffDays = Math.ceil((renewalDate - today) / (1000 * 60 * 60 * 24));\n\n  const outRow = {\n    ...row,\n    _service: serviceName,\n    _rawRenewal: rawRenewal,\n    nextRenewalDate: renewalDate.toISOString().slice(0, 10),\n    daysLeft: diffDays,\n  };\n\n  out.push({ json: outRow });\n}\n\nif (out.length === 0) {\n  return [{ json: { info: \"no_valid_dates\", debug } }];\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        1216
+      ],
+      "id": "9eaeb0c2-17cf-4726-a506-490611ed8f00",
+      "name": "Check Expiration1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
+              "leftValue": "={{ $json.daysLeft }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        144
+      ],
+      "id": "e08e1a7d-914a-4ab2-9527-1e102de3e33e",
+      "name": "10 days left?1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
+              "leftValue": "={{ $json.daysLeft }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        2144
+      ],
+      "id": "3abe1f3f-0721-44ca-b219-03838bdf3926",
+      "name": "2 days left?1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
+              "leftValue": "={{ $json.daysLeft }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        992
+      ],
+      "id": "2bb24a02-dde7-41e9-a7ee-ded71ddb8b68",
+      "name": "5 days left?1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09QVU5TPDE",
+          "mode": "list",
+          "cachedResultName": "subscriptions"
+        },
+        "message": "=🚨 *{{ $json.SERVICE }}* — *{{ $json.alertType === 'payToday' ? '💸 PAYMENT DUE TODAY' : '⏳ EXPIRING SOON' }}*\n\n💰 XXX: *{{ $json[\"AMOUNT XXX\"] }}*\n💵 USD: *{{ $json[\"AMOUNT $$\"] }}*\n\n📅 Renewal Date: *{{ $json[\"RENEWAL DATE\"] || $json[\"renewal_raw\"] }}*\n🕒 Days Left: *{{ $json.daysLeft }} day(s)*\n\n---",
+        "approvalOptions": {
+          "values": {
+            "approveLabel": "PAID?"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1536,
+        2048
+      ],
+      "id": "",
+      "name": "Send message and wait for response2",
+      "webhookId": "",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        80
+      ],
+      "id": "06e8d48e-cde9-40dc-8458-81a88fb70fc2",
+      "name": "No Operation, do nothing4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0b0c892b-5c5c-492b-a4ae-0f9492f3c37e",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1760,
+        2048
+      ],
+      "id": "06f96f04-d2d6-4806-9da1-677eea3f7bad",
+      "name": "PAID?2",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * 💳 Smart Next Payment Date Calculator\n * - Reads from node \"Loop Over Items\"\n * - Uses ISO \"RENEWAL DATE\" (YYYY-MM-DD)\n * - Adds days based on FREQUENCY:\n *     Monthly → +28 days\n *     Quarterly → +84 days\n *     Annual/Yearly → +365 days\n * - Returns ISO \"nextPaymentDate\"\n */\n\nconst SOURCE_NODE = \"Loop Over Items\"; // name of node with details\n\n// get the current item’s data from that node\nconst source = $item(0).$node[SOURCE_NODE].json;\n\n// pull date and frequency\nconst renewalDate = source[\"RENEWAL DATE\"];\nconst frequency = (source[\"FREQUENCY\"] || \"\").toLowerCase().trim();\n\n// basic validation\nif (!renewalDate) {\n  return {\n    json: {\n      error: \"❌ Missing RENEWAL DATE in source node\",\n      sourceNode: SOURCE_NODE,\n    },\n  };\n}\n\nconst parsed = new Date(renewalDate);\nif (isNaN(parsed.getTime())) {\n  return {\n    json: {\n      error: `❌ Invalid RENEWAL DATE format: ${renewalDate}`,\n      sourceNode: SOURCE_NODE,\n    },\n  };\n}\n\n// calculate days to add based on frequency\nlet daysToAdd = 28; // default = monthly\nif (frequency.includes(\"quarter\")) daysToAdd = 84;\nelse if (frequency.includes(\"year\") || frequency.includes(\"annual\")) daysToAdd = 365;\n\n// add days\nparsed.setDate(parsed.getDate() + daysToAdd);\nconst nextPaymentDate = parsed.toISOString().slice(0, 10); // ISO YYYY-MM-DD\n\nreturn {\n  json: {\n    originalDate: renewalDate,\n    frequency,\n    daysAdded: daysToAdd,\n    nextPaymentDate,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        2096
+      ],
+      "id": "cde1747e-439e-4b4b-bd9b-b3562aff30de",
+      "name": "UPDATE NEXT PAYMENT DATE2",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw",
+          "mode": "list",
+          "cachedResultName": "PERSONAL N8N TASKS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "SUBSCRIPTIONS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "RENEWAL DATE": "={{ $json.nextPaymentDate }}",
+            "NEW RENEWAL DATE": "={{ $json.nextPaymentDate }}",
+            "row_number": "={{ $('Loop Over Items3').item.json.row_number }}",
+            "LAST PAYMENT DATE": "={{ new Date().toISOString().split('T')[0] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "SERVICE",
+              "displayName": "SERVICE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AMOUNT $$",
+              "displayName": "AMOUNT $$",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AMOUNT XXX",
+              "displayName": "AMOUNT XXX",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LAST PAYMENT DATE",
+              "displayName": "LAST PAYMENT DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "R_ENEWAL DATE",
+              "displayName": "R_ENEWAL DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RENEWAL DATE",
+              "displayName": "RENEWAL DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NEW RENEWAL DATE",
+              "displayName": "NEW RENEWAL DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FREQUENCY",
+              "displayName": "FREQUENCY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NOTES",
+              "displayName": "NOTES",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Exchange Rate",
+              "displayName": "Exchange Rate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2208,
+        2096
+      ],
+      "id": "72fce333-6c97-425e-a5f4-fad06414183b",
+      "name": "UPDATE SUB SHEET2",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        1888
+      ],
+      "id": "46910b87-f802-48d4-834f-7b31202e74c0",
+      "name": "No Operation, do nothing6"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1312,
+        2048
+      ],
+      "id": "a2023a04-9ac8-4a14-bddf-2cb730da1883",
+      "name": "Loop Over Items3",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0b0c892b-5c5c-492b-a4ae-0f9492f3c37e",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1808,
+        1088
+      ],
+      "id": "ddb1a299-814e-4eb7-9a49-5785c143cd05",
+      "name": "PAID?3",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * 💳 Smart Next Payment Date Calculator\n * - Reads from node \"Loop Over Items\"\n * - Uses ISO \"RENEWAL DATE\" (YYYY-MM-DD)\n * - Adds days based on FREQUENCY:\n *     Monthly → +28 days\n *     Quarterly → +84 days\n *     Annual/Yearly → +365 days\n * - Returns ISO \"nextPaymentDate\"\n */\n\nconst SOURCE_NODE = \"Loop Over Items1\"; // name of node with details\n\n// get the current item’s data from that node\nconst source = $item(0).$node[SOURCE_NODE].json;\n\n// pull date and frequency\nconst renewalDate = source[\"RENEWAL DATE\"];\nconst frequency = (source[\"FREQUENCY\"] || \"\").toLowerCase().trim();\n\n// basic validation\nif (!renewalDate) {\n  return {\n    json: {\n      error: \"❌ Missing RENEWAL DATE in source node\",\n      sourceNode: SOURCE_NODE,\n    },\n  };\n}\n\nconst parsed = new Date(renewalDate);\nif (isNaN(parsed.getTime())) {\n  return {\n    json: {\n      error: `❌ Invalid RENEWAL DATE format: ${renewalDate}`,\n      sourceNode: SOURCE_NODE,\n    },\n  };\n}\n\n// calculate days to add based on frequency\nlet daysToAdd = 28; // default = monthly\nif (frequency.includes(\"quarter\")) daysToAdd = 84;\nelse if (frequency.includes(\"year\") || frequency.includes(\"annual\")) daysToAdd = 365;\n\n// add days\nparsed.setDate(parsed.getDate() + daysToAdd);\nconst nextPaymentDate = parsed.toISOString().slice(0, 10); // ISO YYYY-MM-DD\n\nreturn {\n  json: {\n    originalDate: renewalDate,\n    frequency,\n    daysAdded: daysToAdd,\n    nextPaymentDate,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        1184
+      ],
+      "id": "ceefc8f3-b2a4-4d6a-b30a-02eb3abde5d0",
+      "name": "UPDATE NEXT PAYMENT DATE3",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw",
+          "mode": "list",
+          "cachedResultName": "PERSONAL N8N TASKS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "SUBSCRIPTIONS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "RENEWAL DATE": "={{ $json.nextPaymentDate }}",
+            "row_number": "={{ $('Loop Over Items4').item.json.row_number }}",
+            "NEW RENEWAL DATE": "={{ $json.nextPaymentDate }}",
+            "LAST PAYMENT DATE": "={{ new Date().toISOString().split('T')[0] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "SERVICE",
+              "displayName": "SERVICE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AMOUNT $$",
+              "displayName": "AMOUNT $$",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AMOUNT XXX",
+              "displayName": "AMOUNT XXX",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LAST PAYMENT DATE",
+              "displayName": "LAST PAYMENT DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "R_ENEWAL DATE",
+              "displayName": "R_ENEWAL DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RENEWAL DATE",
+              "displayName": "RENEWAL DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NEW RENEWAL DATE",
+              "displayName": "NEW RENEWAL DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FREQUENCY",
+              "displayName": "FREQUENCY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NOTES",
+              "displayName": "NOTES",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Exchange Rate",
+              "displayName": "Exchange Rate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2256,
+        1264
+      ],
+      "id": "fce86cdb-770e-4c56-8ff5-1125569747bb",
+      "name": "UPDATE SUB SHEET3",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2256,
+        912
+      ],
+      "id": "6b61de5e-060e-4c6c-a5ff-5ce03b73381c",
+      "name": "No Operation, do nothing7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1360,
+        1088
+      ],
+      "id": "ba3754dd-fb4b-4897-abc8-92840d4b91d8",
+      "name": "Loop Over Items4",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        128
+      ],
+      "id": "bcabbf7d-0ceb-4ec3-bf73-48829bb2202b",
+      "name": "No Operation, do nothing8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1440,
+        272
+      ],
+      "id": "072fbc5b-ee8f-4fca-866b-d86d5f3c4d12",
+      "name": "Loop Over Items5",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        2240
+      ],
+      "id": "a86bb336-fc57-428e-934d-08b84f45d5ff",
+      "name": "No Operation, do nothing9"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09QVU5TPDE",
+          "mode": "list",
+          "cachedResultName": "subscriptions"
+        },
+        "text": "=🚨 *{{ $json.SERVICE }}* — *{{ $json.alertType === 'REMINDER' ? '💸 PAYMENT DUE SOON' : '⏳ EXPIRING SOON' }}*  <br>\n💰 XXX: *{{ $json[\"AMOUNT XXX\"] }}* <br>\n💵 USD: *{{ $json[\"AMOUNT $$\"] }}* <br> \n📅 Renewal Date: *{{ $json[\"RENEWAL DATE\"] || $json[\"renewal_raw\"] }}*<br> \n🕒 Days Left: *{{ $json.daysLeft }} day(s)*  ---",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1664,
+        320
+      ],
+      "id": "fd04a917-87e0-40d9-a8ed-bab91733b6bc",
+      "name": "Send a message3",
+      "webhookId": "6000714e-2c94-4a15-9b96-dedb1b308391",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09QVU5TPDE",
+          "mode": "list",
+          "cachedResultName": "subscriptions"
+        },
+        "message": "=🚨 *{{ $json.SERVICE }}* — *{{ $json.alertType === 'paySoon' ? '💸 PAYMENT DUE IN 5 DAYS' : '⏳ EXPIRING SOON' }}*\n\n💰 XXX: *{{ $json[\"AMOUNT XXX\"] }}*\n💵 USD: *{{ $json[\"AMOUNT $$\"] }}*\n\n📅 Renewal Date: *{{ $json[\"RENEWAL DATE\"] || $json[\"renewal_raw\"] }}*\n🕒 Days Left: *{{ $json.daysLeft }} day(s)*\n\n---",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Paid?",
+            "disapproveLabel": "Not Paid?"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1584,
+        1088
+      ],
+      "id": "1c0e0544-9e2c-42ff-a026-497ebb73ac08",
+      "name": "Send message and wait for response3",
+      "webhookId": "28f90785-39ab-485b-a535-82f73a7a554c",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09QVU5TPDE",
+          "mode": "list",
+          "cachedResultName": "subscriptions"
+        },
+        "text": "=🚨 *{{ $('Loop Over Items4').item.json.SERVICE }}* — \n\n*Payment will be due in* * {{ $('Loop Over Items4').item.json.daysLeft }}day(s)* \n\nBe sure to have paid or have the money ready.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2032,
+        992
+      ],
+      "id": "c81ebc2b-659b-445c-80da-3edefbc49b89",
+      "name": "Send a message4",
+      "webhookId": "7cf75070-ec5b-49ae-9904-b2dcb53be9c6",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09QVU5TPDE",
+          "mode": "list",
+          "cachedResultName": "subscriptions"
+        },
+        "text": "=*Payment Recorded*\n\n🚨 *{{ $('Loop Over Items3').item.json.SERVICE }}* — \n\n*Next Payment will be due in * {{ $('Loop Over Items3').item.json.daysLeft }}day(s)* \n\n*Next Payment Date:{{ $('Loop Over Items3').item.json['NEW RENEWAL DATE'] }}*",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2432,
+        2176
+      ],
+      "id": "9fa5d11e-bd1c-4a7d-bcba-cc1abefe5c63",
+      "name": "Send a message5",
+      "webhookId": "14ef0a24-c539-452c-bd25-a62736d47ea6",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Subscriptions Reminder\n**These are for services we pay for that our outside our App/Play store.**  I don't rely on their emails as they came a little too late to prepare for.\n\n\nStep 1 is just a gentle reminder to get you to start making proper preparations.\n\n**Google Sheets**\nThe sheet should have these columns as the code works with these for the calculation of the next payment date and messages. If any is edited, kindly edit all required nodes. \n\n**SERVICE\t\nAMOUNT $$\t\nAMOUNT (XXX)\t-_You can swap with your local currency_\nLAST PAYMENT DATE\t\nRENEWAL DATE\t\nFREQUENCY**-_This  can be monthly/qaterly/annually, depending on your service.\n\n**_Note_**\nYou can create more rows, it's entirely up to you.\n\n\nWhen updating the sheet for the **LAST PAYMENT DATE** in Steps 2&3, use this code as an expression to get today's date: _{{ new Date().toISOString().split('T')[0] }}_\n\n\n\n\n**Slack**\nIn **Steps 2&3**, a response will be needed to move to he next node after the slack node. This can also be edited. Step 2 is an option to either \"Pay\" or \"Not Paid\" as it is still 5 days to payment date, while Step 3 is compulsory you pay because it is less than 2 days to payment.\n\n\n\n**Calculation of Next Payment Date**\n2 days were removed for monthly payments, this means instead of 30 days from the last payment, we made it 28 days. This is just like a soft buffer. You can edit this in the code node.",
+        "height": 2496,
+        "width": 800
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "d7794a30-4c7f-4d68-ba37-038a8ac431cf",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Step 1: Soft Reminder \n**Default value is 10 days** you can change this depending on your preference.\nThis just sends you a message reminding you of the subscription; amount and remaining days.",
+        "height": 640,
+        "width": 1488,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "7e727f5d-0720-4cf7-9baa-cade2da9c5b0",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2: Soft Nudge\n**Default value is 5 days** You can pay now, or click \"not paid\" and wait till the final reminder of 2 days.",
+        "height": 816,
+        "width": 1504,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "adb19623-1bff-4006-8a09-7c4c3f313056",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3: REAL REMINDER_ YOU HAVE TO PAY\n**Default value is 2days** You have to pay now, and when this action is done and you've confirmed via slack, the next payment date will be auto added to your sheets.",
+        "height": 800,
+        "width": 1520,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        1584
+      ],
+      "typeVersion": 1,
+      "id": "9933c057-18dc-4c1a-906b-e59f2aa5e649",
+      "name": "Sticky Note7"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Sub O1": {
+      "main": [
+        [
+          {
+            "node": "Check Sub Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Sub Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Check Expiration1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Expiration1": {
+      "main": [
+        [
+          {
+            "node": "5 days left?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "2 days left?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "10 days left?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 days left?1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 days left?1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 days left?1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response2": {
+      "main": [
+        [
+          {
+            "node": "PAID?2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PAID?2": {
+      "main": [
+        [
+          {
+            "node": "UPDATE NEXT PAYMENT DATE2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE NEXT PAYMENT DATE2": {
+      "main": [
+        [
+          {
+            "node": "UPDATE SUB SHEET2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE SUB SHEET2": {
+      "main": [
+        [
+          {
+            "node": "Send a message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message and wait for response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PAID?3": {
+      "main": [
+        [
+          {
+            "node": "UPDATE NEXT PAYMENT DATE3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE NEXT PAYMENT DATE3": {
+      "main": [
+        [
+          {
+            "node": "UPDATE SUB SHEET3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE SUB SHEET3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items4": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message and wait for response3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items5": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response3": {
+      "main": [
+        [
+          {
+            "node": "PAID?3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message4": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d4ed6a3b-0c26-45f0-8456-6e769886759b",
+  "meta": {
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  },
+  "id": "sIlvpL5k8GNBlTBk",
+  "tags": []
+}
