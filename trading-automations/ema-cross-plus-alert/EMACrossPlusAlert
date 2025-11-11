@@ -1,0 +1,60 @@
+//+------------------------------------------------------------------+
+//|                      EMACrossAlert.mq5                           |
+//|       Sends alert when EMA(10) crosses EMA(20) on M5            |
+//+------------------------------------------------------------------+
+#property strict
+
+input ENUM_TIMEFRAMES TF        = PERIOD_M5;
+input int             FastEMAPeriod = 10;
+input int             SlowEMAPeriod = 20;
+
+int fastEmaHandle, slowEmaHandle;
+double fastEmaBuffer[3], slowEmaBuffer[3];
+
+enum CrossType { NONE = 0, CROSS_UP, CROSS_DOWN };
+CrossType lastCross = NONE;
+
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   fastEmaHandle = iMA(Symbol(), TF, FastEMAPeriod, 0, MODE_EMA, PRICE_CLOSE);
+   slowEmaHandle = iMA(Symbol(), TF, SlowEMAPeriod, 0, MODE_EMA, PRICE_CLOSE);
+
+   if (fastEmaHandle == INVALID_HANDLE || slowEmaHandle == INVALID_HANDLE)
+   {
+      Print("❌ Failed to create EMA handles.");
+      return INIT_FAILED;
+   }
+
+   ArraySetAsSeries(fastEmaBuffer, true);
+   ArraySetAsSeries(slowEmaBuffer, true);
+
+   Print("✅ EMA Cross Alert initialized.");
+   return INIT_SUCCEEDED;
+}
+
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   if (CopyBuffer(fastEmaHandle, 0, 0, 3, fastEmaBuffer) < 3) return;
+   if (CopyBuffer(slowEmaHandle, 0, 0, 3, slowEmaBuffer) < 3) return;
+
+   // Compare last 2 closed candles
+   double prevFast = fastEmaBuffer[2];
+   double prevSlow = slowEmaBuffer[2];
+   double currFast = fastEmaBuffer[1];
+   double currSlow = slowEmaBuffer[1];
+
+   if (prevFast < prevSlow && currFast > currSlow && lastCross != CROSS_UP)
+   {
+      Alert("📈 EMA(10) crossed ABOVE EMA(20) on M5");
+      SendNotification("📈 EMA(10) crossed ABOVE EMA(20) on M5");
+      lastCross = CROSS_UP;
+   }
+   else if (prevFast > prevSlow && currFast < currSlow && lastCross != CROSS_DOWN)
+   {
+      Alert("📉 EMA(10) crossed BELOW EMA(20) on M5");
+      SendNotification("📉 EMA(10) crossed BELOW EMA(20) on M5");
+      lastCross = CROSS_DOWN;
+   }
+}
