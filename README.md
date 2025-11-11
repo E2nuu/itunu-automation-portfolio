@@ -1,7 +1,7 @@
 # 🚀 Itunu’s Automation Portfolio
 
 Welcome!  
-This is my personal collection of **automation projects** — built to help businesses, freelancers, and developers simplify work with smart workflows and code.
+This is my personal collection of **automation projects**; built to help businesses, freelancers, and developers simplify work with smart workflows and code.
 
 ---
 
