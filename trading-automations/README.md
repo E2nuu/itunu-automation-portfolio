@@ -5,9 +5,11 @@ A growing collection of trading automation tools, indicators, and expert advisor
 ---
 
 ## 📦 Included Projects
-- [**EMA Cross Signals**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-cross-signals) – Draws Buy/Sell signals and retest confirmations based on EMA crossovers.
-- [**EMA Live + Historical Signals**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-live-historical-signals) – Draws Buy/Sell lines when EMA(70) is broken live and backfills signals for the last 90 days.
-- [**EMA Cross Alert**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-cross-alert) – Sends real-time alerts and push notifications when EMA(10) crosses EMA(20) on the M5 timeframe.
+- [**EMA Cross Signals**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-cross-signals) : Draws Buy/Sell signals and retest confirmations based on EMA crossovers.
+- [**EMA Live + Historical Signals**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-live-historical-signals) : Draws Buy/Sell lines when EMA(70) is broken live and backfills signals for the last 90 days.
+- [**EMA Cross Alert**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/ema-cross-alert) : Sends real-time alerts and push notifications when EMA(10) crosses EMA(20) on the M5 timeframe.<br>
+- [**Global Variable Cleaner**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/trading-automations/global-var-cleaner) : Deletes EA-related global variables on MT5 and logs each removed value for clean VPS performance.
+
 
 
 ---
