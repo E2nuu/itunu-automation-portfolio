@@ -6,7 +6,7 @@ This is my personal collection of **automation projects**; built to help busines
 ---
 
 ## 🧩 n8n Workflows
-Automations created using [n8n.io](https://n8n.io), an open-source automation platform.
+Automations created using [n8n.io](https://n8n.io/creators/e2nu/), an open-source automation platform.
 
 - [**Unsubscribe Manager for Lead Generation**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows)<br>
   Automatically detects unsubscribe replies in your Gmail outreach and updates Google Sheets to keep your lists clean.
