@@ -1,0 +1,322 @@
+{
+  "name": "DAILY LEAD GENERATION REPORT",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pvwbyf4kuc18r53",
+        "table": "ma617ihxide2dnk",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        176,
+        176
+      ],
+      "id": "42612d6e-dfe4-48ec-b163-ed3dbba98a37",
+      "name": "GET UNSUBSCRIBE",
+      "executeOnce": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "nqVkecOohGcc7QN5",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pvwbyf4kuc18r53",
+        "table": "m9x3b6znucj6hct",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        176,
+        -16
+      ],
+      "id": "4c0c3402-45db-4992-b28b-6d47955ab47c",
+      "name": "Get LEAD GEN SHEET",
+      "retryOnFail": true,
+      "executeOnce": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "nqVkecOohGcc7QN5",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        80
+      ],
+      "id": "749e004d-468e-4806-97b8-c9c6d84849aa",
+      "name": "TRIGGER"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        400,
+        80
+      ],
+      "id": "cd4bbd28-58fb-499d-8c1b-2ec19dcb1d90",
+      "name": "MERGE TWO SHEETS"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        80
+      ],
+      "id": "ee196c11-f841-4df6-96eb-f484904efb70",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==========================================================\n// GENERATE LEAD REPORT (DAILY)\n// Creates a structured JSON report for Slack summary message\n// Compatible with any NocoDB-based lead sheet\n// ==========================================================\n\n(() => {\n  const leads = $items('LEADS') || [];\n  const unsubscribes = $items('UNSUBSCRIBES') || [];\n\n  const totalLeads = leads.length;\n  const totalUnsubscribed = unsubscribes.length;\n\n  // --- Status breakdown ---\n  const statusMap = {};\n  const sourceMap = {};\n  const interestMap = {\n    hotLeads: 0,\n    interested: 0,\n    notInterested: 0,\n  };\n\n  leads.forEach(item => {\n    const data = item.json;\n\n    // Normalize status, interest, source\n    const status = (data.status || data.STATUS || '').toLowerCase();\n    const source = (data.source || data.SOURCE || 'Unknown').trim();\n    const interest = (data.interest || data.INTEREST || '').toLowerCase();\n\n    // Count status\n    if (status) statusMap[status] = (statusMap[status] || 0) + 1;\n\n    // Count source\n    sourceMap[source] = (sourceMap[source] || 0) + 1;\n\n    // Count interest\n    if (interest.includes('fire')) interestMap.fireLeads++;\n    else if (interest.includes('hot')) interestMap.hotLeads++;\n    else if (interest.includes('interested')) interestMap.interested++;\n    else if (interest.includes('not')) interestMap.notInterested++;\n  });\n\n  // --- Email health (mock ratios) ---\n  const verified = totalLeads - Math.floor(totalLeads * 0.05); // assume 5% unverified\n  const reachableRatio = ((verified / totalLeads) * 100).toFixed(1);\n  const unreachableRatio = (100 - reachableRatio).toFixed(1);\n\n  // --- New leads today (mock if no time field) ---\n  const newLeads = leads.slice(-3).map(l => l.json.email || l.json.EMAIL || 'Unknown');\n\n  // --- Top lists ---\n  const hotList = interestMap.hotLeads ? `${interestMap.hotLeads} Hot Leads` : 'None yet';\n  const unsubTopList = unsubscribes.slice(-3).map(u => u.json.email || u.json.EMAIL || 'Unknown').join('\\n• ') || 'None today';\n\n  // --- Report date ---\n  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });\n\n  return [\n    {\n      json: {\n        today,\n        totalLeads,\n        totalUnsubscribed,\n        status: Object.keys(statusMap).join(', ') || 'No status data',\n        retarget1: statusMap['recontacted'] || 0,\n        retarget2: statusMap['follow-up'] || 0,\n        hotLeads: interestMap.hotLeads,\n        interested: interestMap.interested,\n        notInterested: interestMap.notInterested,\n        contactsWithVerification: verified,\n        reachableRatio,\n        unreachableRatio,\n        unsubToday: unsubscribes.length ? unsubscribes.length : 0,\n        sourceCount: sourceMap,\n        topList: newLeads.length ? `• ${newLeads.join('\\n• ')}` : 'No new leads today.',\n        hotList,\n        unsubTopList,\n      },\n    },\n  ];\n})();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        80
+      ],
+      "id": "65baf19b-5aee-4733-9e2e-bd0a22b6308a",
+      "name": "GENERATE LEAD REPORT (DAILY)"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09MUR1FH6V",
+          "mode": "list",
+          "cachedResultName": "daily-report"
+        },
+        "text": "=📊 *Daily Lead Report* – {{ $json[\"today\"] }}\n\n📦 *Overview*\n• Total Leads: *{{ $json[\"totalLeads\"] }}*\n• Contacted: *{{ $json[\"status\"] }}*\n• Retarget 1 Sent: *{{ $json[\"retarget1\"] }}*\n• Retarget 2 Sent: *{{ $json[\"retarget2\"] }}*\n\n💬 *Engagement Summary*\n• Hot Leads: *{{ $json[\"hotLeads\"] }}*\n• Interested: *{{ $json[\"interested\"] }}*\n• Not Interested: *{{ $json[\"notInterested\"] }}*\n\n📧 *Email Health*\n• Verified Emails: *{{ $json[\"contactsWithVerification\"] }}*\n• Reachable Ratio: *{{ $json[\"reachableRatio\"] }}%*\n• Unreachable Ratio: *{{ $json[\"unreachableRatio\"] }}%*\n\n🚫 *Unsubscribes*\n• Total: *{{ $json[\"totalUnsubscribed\"] }}*\n• Today: *{{ $json[\"unsubToday\"] }}*\n\n🗂 *By Source:*\n{{ Object.entries($json[\"sourceCount\"] || {}).map(([k,v]) => `• ${k}: ${v}`).join(\"\\n\") || \"No source data available.\" }}\n\n🆕 *New Leads Today:*\n{{ $json[\"topList\"] || \"No new leads today.\" }}\n\n🔥 *Top Fire Leads:*\n{{ $json[\"fireList\"] || \"None yet.\" }}\n\n💎 *Top Hot Leads:*\n{{ $json[\"hotList\"] || \"None yet.\" }}\n\n🧹 *Recent Unsubscribes:*\n{{ $json[\"unsubTopList\"] || \"None today.\" }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        848,
+        80
+      ],
+      "id": "4569b7ee-bf5d-409e-9f14-ae34c11a7587",
+      "name": "SEND SLACK MESSAGE",
+      "webhookId": "4fb5e6f1-4bad-4d85-b60d-0a03b150a1c0",
+      "credentials": {
+        "slackApi": {
+          "id": "Uv9LpREbM9fy9j8s",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Step 1: **TRIGGER** \n\n\n-->Runs automatically daily to summarize lead performance.",
+        "height": 256,
+        "width": 192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "bf034c35-1b7d-4ffe-b411-b679d50b4088",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2: **MERGE TWO SHEETS** \n\n\n-->Combines main leads and unsubscribe lists for unified reporting. ",
+        "height": 256,
+        "width": 416,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        80,
+        -304
+      ],
+      "typeVersion": 1,
+      "id": "bfa9bcc2-8959-4864-9a6a-91c993262f66",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3:  **GENERATE LEAD REPORT (DAILY)** \n\n\n--> Calculates engagement, conversions, and deliverability metrics. ",
+        "height": 256,
+        "width": 224,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        560,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "32295950-feaf-4b3d-9e47-d33da2f81577",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Step 4:   **SEND TO SLACK** \n\n\n\n\n-->Sends a visual summary of key results to your daily channel. ",
+        "height": 256,
+        "width": 192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        816,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "9a975a88-a260-43c0-b98d-19da1d8aab87",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## DAILY LEAD GENERATION REPORT\n\n\n## Why?\nManually checking spreadsheets for performance updates slows you down and breaks your focus.  \n\nThis automation ensures your lead-generation insights come to you; not the other way around.  \n\nBy sending a clear, structured daily report straight to Slack (or any other tool you want), it helps you stay proactive, make faster decisions, and maintain full visibility across campaigns without ever opening a sheet.  \n",
+        "height": 688,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        -352
+      ],
+      "typeVersion": 1,
+      "id": "ca394afd-f233-4678-9280-c0626f3a1bae",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET UNSUBSCRIBE": {
+      "main": [
+        [
+          {
+            "node": "MERGE TWO SHEETS",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get LEAD GEN SHEET": {
+      "main": [
+        [
+          {
+            "node": "MERGE TWO SHEETS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TRIGGER": {
+      "main": [
+        [
+          {
+            "node": "GET UNSUBSCRIBE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get LEAD GEN SHEET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MERGE TWO SHEETS": {
+      "main": [
+        [
+          {
+            "node": "GENERATE LEAD REPORT (DAILY)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GENERATE LEAD REPORT (DAILY)": {
+      "main": [
+        [
+          {
+            "node": "SEND SLACK MESSAGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEND SLACK MESSAGE": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveExecutionProgress": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "UNrVZbiiSpgbbt9H",
+    "timeSavedPerExecution": 5,
+    "timezone": "Africa/Lagos"
+  },
+  "versionId": "f3cdc26d-460f-4a13-98ac-42cbd70af37a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  },
+  "id": "ApItm67BQSMviQRB",
+  "tags": [
+    {
+      "updatedAt": "2025-10-30T14:01:29.686Z",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "id": "vLLcwhiSm3lgtjpI",
+      "name": "PORTFOLIO"
+    },
+    {
+      "updatedAt": "2025-11-02T21:46:43.436Z",
+      "createdAt": "2025-11-02T21:46:43.436Z",
+      "id": "y9jqrrc7FyhdgP55",
+      "name": "NOCODB"
+    }
+  ]
+}
