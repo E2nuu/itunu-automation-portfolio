@@ -18,6 +18,9 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
 
 - [**Spam Manager for Lead Generation**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/spam-manager-for-lead-generation)  
   Automatically detects bounce and spam replies (like “Delivery failed” or “Mailbox full”) and cleans your NocoDB lead lists; helping maintain healthy deliverability and strong domain reputation.
+
+ - [**Remove Duplicates (NocoDB)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/remove-duplicates-using-NOCODB)  
+  Automatically finds and deletes duplicate records in your NocoDB unsubscribe or lead list, keeping your outreach data clean and reliable.
   
 
 - *(More coming soon...)*
