@@ -1,0 +1,306 @@
+{
+  "name": "REMOVE DUPLICATES USING NOCODB",
+  "nodes": [
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "EMAIL",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        -208
+      ],
+      "id": "252e7175-2bc5-48de-b352-de9eec6404fc",
+      "name": "Remove Duplicates",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the results of both nodes\nconst allRows = $items(\"GET REQUIRED SHEET\"); // Original\nconst uniqueRows = $items(\"Remove Duplicates\");   // After deduplication\n\n// Build lookup of unique IDs\nconst uniqueIds = new Set(uniqueRows.map(r => r.json.Id));\n\n// Find which ones were removed (duplicates)\nconst duplicates = allRows\n  .filter(r => !uniqueIds.has(r.json.Id))\n  .map(r => r.json);\n\n// Return the duplicate records\nreturn duplicates.map(d => ({\n  json: {\n    Id: d.Id,\n    ...d\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        -208
+      ],
+      "id": "6bd09f23-8924-4297-a1e3-e80fc203335f",
+      "name": "DUPLICATES IDS"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get full data set (before deduplication)\nconst allRows = $items(\"GET REQUIRED SHEET\");  // original\n// Get the deduplicated list (after duplicates removed)\nconst uniqueRows = $items(\"Remove Duplicates\");    \n\n// Build lookup of unique IDs\nconst uniqueIds = new Set(uniqueRows.map(r => r.json.Id));\n\n// Find duplicates\nconst duplicates = allRows.filter(r => !uniqueIds.has(r.json.Id));\n\n// Extract just the IDs\nconst duplicateIds = duplicates.map(r => r.json.Id);\n\n// Return as single JSON output (array)\nreturn [\n  {\n    json: {\n      ids: duplicateIds\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        -208
+      ],
+      "id": "c81124bd-404a-4cc4-8d8c-3e22e38143d0",
+      "name": "DUPLICATE ID ARRAYS"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "delete",
+        "projectId": "pvwbyf4kuc18r53",
+        "table": "ma617ihxide2dnk",
+        "id": "={{ $('DELETE DUPLICATES').item.json.Id }}"
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        -208
+      ],
+      "id": "efea533e-67fa-422d-b59b-cfca3309caef",
+      "name": "Delete a row",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        -208
+      ],
+      "id": "282bcf1b-ca61-423e-816b-aeb5b945b9ba",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pvwbyf4kuc18r53",
+        "table": "ma617ihxide2dnk",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        864,
+        -208
+      ],
+      "id": "20a25d64-051a-4fa9-aecd-a88d6a0d87be",
+      "name": "GET REQUIRED SHEET",
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        -208
+      ],
+      "id": "b75eb647-9111-4ea5-9fa2-584bb38c6429",
+      "name": "TRIGGER"
+    },
+    {
+      "parameters": {
+        "content": "## Step 1: SCHEDULE TRIGGER\n\n ->Runs automatically at your chosen interval (daily, weekly, etc.) to clean duplicates.",
+        "height": 272,
+        "width": 192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        560,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "4a1ae940-c24d-4aeb-b205-fa8b17ec510f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2: GET NOCODB SHEET\n\n \n->Fetches all rows from the sheet you want to remove duplicates from.",
+        "height": 272,
+        "width": 192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "611121e0-5d0f-442d-a777-e70f675c081f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3: **REMOVE DUPLICATES** \n\n\n->Compares entries by EMAIL and keeps only one unique record.",
+        "height": 272,
+        "width": 192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1024,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "f6df6869-1bb6-40fc-88bf-dfcff90f5fcc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Step 4: **DUPLICATE LOGIC** \n\n\n\n\n\n\n\n->Identifies IDs of duplicate records for deletion and makes into an array.",
+        "height": 272,
+        "width": 416,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1248,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "7f30ff58-19d5-45ef-875b-404916bf61e0",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Step 5:  **DELETE DUPLICATES** \n\n\n\n\n->Removes redundant entries from your NocoDB table permanently.",
+        "height": 272,
+        "width": 192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1712,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "60457f3d-c8f6-4d5b-9539-9e94b2a3d28e",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## REMOVE DUPLICATES USING NOCODB\n\n\n## Why?  \nDuplicate contacts don’t just clutter your lists, they dilute your outreach accuracy and damage trust.  \n\nThis automation ensures your NocoDB sheets stay clean, unique, and reliable.  \n\nBy maintaining a single data per contact, you protect your sender reputation, reduce redundant communication, and create a healthier ecosystem for every other workflow connected to your CRM/DB.\n  \n",
+        "height": 544,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        176,
+        -624
+      ],
+      "typeVersion": 1,
+      "id": "d62e06bf-77e3-4dcc-8a05-7efeef5e018b",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "DUPLICATES IDS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DUPLICATES IDS": {
+      "main": [
+        [
+          {
+            "node": "DUPLICATE ID ARRAYS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DUPLICATE ID ARRAYS": {
+      "main": [
+        [
+          {
+            "node": "Delete a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a row": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET REQUIRED SHEET": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TRIGGER": {
+      "main": [
+        [
+          {
+            "node": "GET REQUIRED SHEET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Lagos",
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "UNrVZbiiSpgbbt9H"
+  },
+  "versionId": "e2bf0388-6dce-41cf-b68b-022b58617294",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  },
+  "id": "KxHGUrf9taduO8HI",
+  "tags": [
+    {
+      "updatedAt": "2025-10-30T14:01:29.686Z",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "id": "vLLcwhiSm3lgtjpI",
+      "name": "PORTFOLIO"
+    },
+    {
+      "updatedAt": "2025-11-02T21:46:43.436Z",
+      "createdAt": "2025-11-02T21:46:43.436Z",
+      "id": "y9jqrrc7FyhdgP55",
+      "name": "NOCODB"
+    }
+  ]
+}
