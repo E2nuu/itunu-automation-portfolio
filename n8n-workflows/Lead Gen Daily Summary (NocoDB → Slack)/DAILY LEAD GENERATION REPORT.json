@@ -5,8 +5,8 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "getAll",
-        "projectId": "pvwbyf4kuc18r53",
-        "table": "ma617ihxide2dnk",
+        "projectId": "",
+        "table": "",
         "returnAll": true,
         "options": {}
       },
@@ -21,7 +21,7 @@
       "executeOnce": true,
       "credentials": {
         "nocoDbApiToken": {
-          "id": "nqVkecOohGcc7QN5",
+          "id": "",
           "name": "NocoDB Token account"
         }
       }
@@ -30,8 +30,8 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "getAll",
-        "projectId": "pvwbyf4kuc18r53",
-        "table": "m9x3b6znucj6hct",
+        "projectId": "",
+        "table": "",
         "returnAll": true,
         "options": {}
       },
@@ -47,7 +47,7 @@
       "executeOnce": true,
       "credentials": {
         "nocoDbApiToken": {
-          "id": "nqVkecOohGcc7QN5",
+          "id": "",
           "name": "NocoDB Token account"
         }
       }
@@ -129,7 +129,7 @@
       "webhookId": "4fb5e6f1-4bad-4d85-b60d-0a03b150a1c0",
       "credentials": {
         "slackApi": {
-          "id": "Uv9LpREbM9fy9j8s",
+          "id": "",
           "name": "Slack account 2"
         }
       }
