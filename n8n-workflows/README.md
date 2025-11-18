@@ -16,6 +16,10 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
 - [**Subscriptions Manager**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/subscriptions-manager)  
   Automatically tracks and reminds you about upcoming renewals outside App Store or Play Store.
 
+- [**Spam Manager for Lead Generation**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/spam-manager-for-lead-generation)  
+  Automatically detects bounce and spam replies (like “Delivery failed” or “Mailbox full”) and cleans your NocoDB lead lists; helping maintain healthy deliverability and strong domain reputation.
+  
+
 - *(More coming soon...)*
 
 ---
