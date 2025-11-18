@@ -24,6 +24,9 @@ Automations created using [n8n.io](https://n8n.io/creators/e2nu/), an open-sourc
  - [**Remove Duplicates (NocoDB)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/remove-duplicates-using-NOCODB)  
   Automatically finds and deletes duplicate records in your NocoDB unsubscribe or lead list, keeping your outreach data clean and reliable.
   
+ - [**Lead Gen Daily Summary (NocoDB → Slack)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/Lead%20Gen%20Daily%20Summary%20(NocoDB%20%E2%86%92%20Slack))  
+  Automatically compiles daily lead-generation metrics from your NocoDB database and sends a structured performance summary to Slack; keeping your outreach insights centralized, actionable, and effortlessly visible.
+
 > More n8n workflows coming soon...
 
 ---
