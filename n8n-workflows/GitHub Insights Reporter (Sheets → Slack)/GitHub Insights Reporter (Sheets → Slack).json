@@ -1,0 +1,547 @@
+{
+  "name": "GitHub Insights Reporter (Sheets → Slack)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        336
+      ],
+      "id": "9c1d1aa6-3ce7-4173-9ab7-a7328e105297",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "Accept"
+            },
+            {
+              "name": "Value",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1424,
+        240
+      ],
+      "id": "99c5ad89-cf09-4ec0-93fe-f0e3149150d7",
+      "name": "GET VIEWS"
+    },
+    {
+      "parameters": {
+        "url": "=",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "Accept"
+            },
+            {
+              "name": "Value",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1424,
+        432
+      ],
+      "id": "ff8ec2e0-589e-4b3a-bd80-cb265a99f04a",
+      "name": "GET CLONES"
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1856,
+        352
+      ],
+      "id": "aedbd5c1-0134-470b-a991-8afc824a92d6",
+      "name": "Fetch GitHub Traffic Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "PERSONAL",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2717184,
+          "mode": "list",
+          "cachedResultName": "GITHUB",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DATE": "={{ $json.date }}",
+            "VIEWS": "={{ $json.views }}",
+            "UNIQUE VIEWS": "={{ $json.uniques }}",
+            "CLONES": "={{ $json.clones }}",
+            "UNIQUE CLONES": "={{ $json.unique_cloners }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "DATE",
+              "displayName": "DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VIEWS",
+              "displayName": "VIEWS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "UNIQUE VIEWS",
+              "displayName": "UNIQUE VIEWS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CLONES",
+              "displayName": "CLONES",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "UNIQUE CLONES",
+              "displayName": "UNIQUE CLONES",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Views",
+              "displayName": "Total Views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Clones",
+              "displayName": "Total Clones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -752,
+        336
+      ],
+      "id": "a442a1b9-9f30-438d-9053-ebb2b1855da2",
+      "name": "Log Analytics to Sheet"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C07",
+          "mode": "list",
+          "cachedResultName": "github-report"
+        },
+        "text": "=📊 Weekly GitHub Report: itunu-automation-portfolio  \nTOTAL Views:  {{ $json[\"Total Views\"] }}\nTOTAL Clones: {{ $json[\"Total Clones\"] }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        336
+      ],
+      "id": "e8b61aea-5abc-4799-8f8d-252e91b77bab",
+      "name": "Send Scheduled Summary",
+      "webhookId": "3e7e1dff-aa19-4394-8d8f-a8eab8c075db",
+      "retryOnFail": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2192,
+        352
+      ],
+      "id": "087a0e12-7a00-44d9-8ac8-8ba05b03b390",
+      "name": "Trigger"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "date",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -976,
+        336
+      ],
+      "id": "6af0a2c0-4f3a-4766-9c30-9c28b7387ef8",
+      "name": "Merge Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "PERSONAL",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 271792184,
+          "mode": "list",
+          "cachedResultName": "GITHUB",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -528,
+        336
+      ],
+      "id": "bcf59916-a825-4ab9-9fb0-e679fca1a562",
+      "name": "Get Github Data",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## GITHUB INSIGHTS REPORTER\n\n## Why?\n\nGitHub only keeps your traffic analytics (views and clones) for 14 days; after that, the data is gone forever.  \nManually exporting those insights every week is tedious, and most developers simply forget to do it.  \n\nThis workflow solves that by automatically pulling your GitHub stats, saving them in Google Sheets for long-term tracking, and sending summaries to Slack.  \n\nIt keeps your growth data organized, historical, and always accessible; so you never lose valuable performance insights again.",
+        "height": 720,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2592,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "5ac3f431-bd46-4232-80aa-dce533c2643f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 1: TRIGGER  \n\n-->Runs automatically to collect your GitHub analytics.  \n-->You can adjust the schedule to daily, weekly, or monthly depending on how often you want your insights delivered.",
+        "height": 400,
+        "width": 208,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2208,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "1b484039-be45-403f-8491-88c23f5b45a1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 2: FETCH DATA  \n\n\n-->Uses the GitHub API to pull your repository’s traffic stats; including views, unique visitors, clones, and cloners.  \n",
+        "height": 400,
+        "width": 624,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1920,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "1c29cf66-60a6-4e65-8b40-7b8b42f3047b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 3: FORMAT DATA  \n\n-->Cleans and structures the analytics for Google Sheets.  \n\n-->Converts raw API data into clear columns for date, views, and clones.",
+        "height": 400,
+        "width": 208,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1248,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "db290fc7-241a-4a0d-a46b-304e87ab6d67",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 4: LOG DATA  TO SHEETS & GET DATA FOR REPORTING\n\n-->Saves your analytics to Google Sheets for long-term tracking.  \n\n-->Each new report is added as a separate row, preserving your full history over time.",
+        "height": 400,
+        "width": 416,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -816,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "90eec262-890d-4ff9-994e-2668a75455ff",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 5: SEND REPORT  \n\n\n-->Summarizes the GitHub performance and sends it to Slack.  \n",
+        "height": 400,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -352,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "0afeaf4b-46ff-4b46-96c8-b596d737c13c",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flatten GitHub traffic data for Sheets + QuickChart\nconst views = $json[\"views\"] || [];\nreturn views.map(v => ({\n  date: v.timestamp.split(\"T\")[0],\n  views: v.count,\n  uniques: v.uniques\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        240
+      ],
+      "id": "6f591c8c-5cb8-4c9e-8eba-c6c5bd02a2ec",
+      "name": "Format Views Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flatten GitHub clones data into a daily array\n// Input: full GitHub API response for /traffic/clones\n\n// Step 1: Access the clones array safely\nconst clonesArray = $json[0]?.clones || $json.clones || [];\n\n// Step 2: Transform it into a flat list\nreturn clonesArray.map(c => ({\n  date: c.timestamp.split('T')[0],\n  clones: c.count,\n  unique_cloners: c.uniques\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        432
+      ],
+      "id": "34085288-9ab1-4055-9909-c5ae8e34c455",
+      "name": "Format Clones Data"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET VIEWS": {
+      "main": [
+        [
+          {
+            "node": "Format Views Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET CLONES": {
+      "main": [
+        [
+          {
+            "node": "Format Clones Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch GitHub Traffic Data": {
+      "main": [
+        [
+          {
+            "node": "GET VIEWS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GET CLONES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Analytics to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Get Github Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Scheduled Summary": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch GitHub Traffic Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Log Analytics to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Github Data": {
+      "main": [
+        [
+          {
+            "node": "Send Scheduled Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Views Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Clones Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4f66b0c0-fe4f-4acd-8734-3a6302034048",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  },
+  "id": "4mrQ0P6pSV0lnvgM",
+  "tags": [
+    {
+      "updatedAt": "2025-10-30T14:01:29.686Z",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "id": "vLLcwhiSm3lgtjpI",
+      "name": "PORTFOLIO"
+    }
+  ]
+}
