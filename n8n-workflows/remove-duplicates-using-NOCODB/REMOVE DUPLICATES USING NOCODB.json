@@ -47,8 +47,8 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "delete",
-        "projectId": "pvwbyf4kuc18r53",
-        "table": "ma617ihxide2dnk",
+        "projectId": "",
+        "table": "",
         "id": "={{ $('DELETE DUPLICATES').item.json.Id }}"
       },
       "type": "n8n-nodes-base.nocoDb",
@@ -76,8 +76,8 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "getAll",
-        "projectId": "pvwbyf4kuc18r53",
-        "table": "ma617ihxide2dnk",
+        "projectId": "",
+        "table": "",
         "returnAll": true,
         "options": {}
       },
