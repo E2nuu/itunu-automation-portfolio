@@ -25,6 +25,9 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
  - [**Lead Gen Daily Summary (NocoDB → Slack)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/Lead%20Gen%20Daily%20Summary%20(NocoDB%20%E2%86%92%20Slack))  
   Automatically compiles daily lead-generation metrics from your NocoDB database and sends a structured performance summary to Slack; keeping your outreach insights centralized, actionable, and effortlessly visible.
 
+- [**GitHub Analytics Automation**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/GitHub%20Insights%20Reporter%20(Sheets%20%E2%86%92%20Slack))  
+  Automatically fetches weekly GitHub traffic data (views and clones), logs them into Google Sheets, and sends a summary report to Slack; keeping your project performance insights on autopilot.
+
 - *(More coming soon...)*
 
 ---
