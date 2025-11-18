@@ -30,7 +30,7 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "getAll",
-        "table": "m9x3b6znucj6hct",
+        "table": "",
         "returnAll": true,
         "options": {}
       },
@@ -122,8 +122,8 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "update",
-        "projectId": "pvwbyf4kuc18r53",
-        "table": "m9x3b6znucj6hct",
+        "projectId": "",
+        "table": "",
         "fieldsUi": {
           "fieldValues": [
             {
