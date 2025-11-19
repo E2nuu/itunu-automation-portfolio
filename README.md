@@ -56,7 +56,7 @@ Python and automation scripts designed for algorithmic trading and real-time mar
 I’m **Itunu**, an automation creator passionate about streamlining workflows and building intelligent systems — from sales outreach to trading analytics.  
 
   
-- ✉️ Reach me:
+Reach me:
 - Email: ceo@cexlisting.com
 - GumRoad: *https://e2nu.gumroad.com/*
 - N8N: *https://n8n.io/creators/e2nu/*
