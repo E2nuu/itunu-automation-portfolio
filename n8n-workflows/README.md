@@ -35,6 +35,11 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
 ### ⚙️ Each workflow includes:
 - Clean, credential-free `.json` export  
 - Setup guide and required credentials  
-- Use cases and benefits  
+- Use cases and benefits
+
+ Reach me:
+- Email: ceo@cexlisting.com
+- GumRoad: *https://e2nu.gumroad.com/*
+- N8N: *https://n8n.io/creators/e2nu/*
 
 > ⚡ **Tip:** You can import any of these JSON files directly into your n8n editor to explore or customize.
