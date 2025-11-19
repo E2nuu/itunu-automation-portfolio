@@ -18,7 +18,12 @@ Each project includes:
 - Clean, ready-to-use `.mq5` file  
 - Installation and setup guide  
 - Explanation of logic and parameters  
-- Visual examples and use cases  
+- Visual examples and use cases
+
+Reach me:
+- Email: ceo@cexlisting.com
+- GumRoad: *https://e2nu.gumroad.com/*
+- N8N: *https://n8n.io/creators/e2nu/* 
 
 ---
 
