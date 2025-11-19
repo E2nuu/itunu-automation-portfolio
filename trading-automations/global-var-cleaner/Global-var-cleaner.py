@@ -11,7 +11,7 @@
 #property link      ""
 
 //--- inputs
-input long MagicNumber = 1613374653;       // <-- your EA's magic number
+input long MagicNumber = xxx;       // <-- your EA's magic number
 input string SymbolFilter = "";        // e.g. "XAUUSD" or leave blank for all
 input bool DeleteAllGlobals = false;   // true = delete all globals (use with caution)
 
