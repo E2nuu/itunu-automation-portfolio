@@ -6,10 +6,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -80,
-        336
+        2848,
+        128
       ],
-      "id": "9c1d1aa6-3ce7-4173-9ab7-a7328e105297",
+      "id": "ae2b4309-4bf1-44dd-b711-491d0716f270",
       "name": "No Operation, do nothing"
     },
     {
@@ -34,10 +34,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -1424,
-        240
+        1568,
+        32
       ],
-      "id": "99c5ad89-cf09-4ec0-93fe-f0e3149150d7",
+      "id": "e0ed79ef-eb5d-4a58-b2fa-546c914cbf36",
       "name": "GET VIEWS"
     },
     {
@@ -63,10 +63,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -1424,
-        432
+        1568,
+        224
       ],
-      "id": "ff8ec2e0-589e-4b3a-bd80-cb265a99f04a",
+      "id": "d54857ba-454f-4741-867b-ad61ce945b35",
       "name": "GET CLONES"
     },
     {
@@ -78,10 +78,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -1856,
-        352
+        1312,
+        144
       ],
-      "id": "aedbd5c1-0134-470b-a991-8afc824a92d6",
+      "id": "a9294ca5-b9e4-4e76-bf48-45329758017d",
       "name": "Fetch GitHub Traffic Data"
     },
     {
@@ -191,10 +191,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -752,
-        336
+        2240,
+        128
       ],
-      "id": "a442a1b9-9f30-438d-9053-ebb2b1855da2",
+      "id": "ed9fbd45-32e3-48e8-b002-33f611f77e38",
       "name": "Log Analytics to Sheet"
     },
     {
@@ -212,36 +212,14 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        -304,
-        336
+        2688,
+        128
       ],
-      "id": "e8b61aea-5abc-4799-8f8d-252e91b77bab",
+      "id": "5429de62-8e2a-42e4-a95b-15e802d3091b",
       "name": "Send Scheduled Summary",
-      "webhookId": "3e7e1dff-aa19-4394-8d8f-a8eab8c075db",
+      "webhookId": "",
       "retryOnFail": true,
       "executeOnce": true
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "weeks",
-              "triggerAtDay": [
-                1
-              ]
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -2192,
-        352
-      ],
-      "id": "087a0e12-7a00-44d9-8ac8-8ba05b03b390",
-      "name": "Trigger"
     },
     {
       "parameters": {
@@ -252,10 +230,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -976,
-        336
+        2032,
+        128
       ],
-      "id": "6af0a2c0-4f3a-4766-9c30-9c28b7387ef8",
+      "id": "a56e905e-198c-488a-a7aa-630568bb0beb",
       "name": "Merge Data"
     },
     {
@@ -280,106 +258,59 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -528,
-        336
+        2464,
+        128
       ],
-      "id": "bcf59916-a825-4ab9-9fb0-e679fca1a562",
+      "id": "0a959639-96d2-41da-84cb-dd9e31d4f68c",
       "name": "Get Github Data",
       "retryOnFail": true
     },
     {
       "parameters": {
-        "content": "## GITHUB INSIGHTS REPORTER\n\n## Why?\n\nGitHub only keeps your traffic analytics (views and clones) for 14 days; after that, the data is gone forever.  \nManually exporting those insights every week is tedious, and most developers simply forget to do it.  \n\nThis workflow solves that by automatically pulling your GitHub stats, saving them in Google Sheets for long-term tracking, and sending summaries to Slack.  \n\nIt keeps your growth data organized, historical, and always accessible; so you never lose valuable performance insights again.",
-        "height": 720,
+        "content": "## GITHUB INSIGHTS REPORTER\n\n## Why?\n\nGitHub only keeps your traffic analytics (views and clones) for 14 days; after that, the data is gone forever.  \nManually exporting those insights every week is tedious, and most developers simply forget to do it.  \n\nThis solves that by automatically pulling your GitHub stats, saving them in Google Sheets for long-term tracking, and sending summaries to Slack.  \n\n",
+        "height": 576,
         "width": 368
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2592,
-        -96
+        624,
+        -176
       ],
       "typeVersion": 1,
-      "id": "5ac3f431-bd46-4232-80aa-dce533c2643f",
+      "id": "48dd07c7-4935-4e72-96f3-30a39c001294",
       "name": "Sticky Note"
     },
     {
       "parameters": {
-        "content": "## STEP 1: TRIGGER  \n\n-->Runs automatically to collect your GitHub analytics.  \n-->You can adjust the schedule to daily, weekly, or monthly depending on how often you want your insights delivered.",
-        "height": 400,
-        "width": 208,
+        "content": "## STEP 1: GET DATA\n\n-->Runs automatically to collect your GitHub analytics.  \n",
+        "height": 560,
+        "width": 864,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2208,
-        -96
+        1056,
+        -160
       ],
       "typeVersion": 1,
-      "id": "1b484039-be45-403f-8491-88c23f5b45a1",
+      "id": "3ad4515c-4e5c-4860-9706-32e2870dbf5c",
       "name": "Sticky Note1"
     },
     {
       "parameters": {
-        "content": "## STEP 2: FETCH DATA  \n\n\n-->Uses the GitHub API to pull your repository’s traffic stats; including views, unique visitors, clones, and cloners.  \n",
-        "height": 400,
-        "width": 624,
+        "content": "## STEP 2: LOG DATA  TO SHEETS & GET DATA FOR REPORTING\n\n-->Saves your analytics to Google Sheets for long-term tracking.  \n\n-->Each new report is added as a separate row, preserving your full history over time.",
+        "height": 560,
+        "width": 592,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1920,
-        -208
+        2208,
+        -160
       ],
       "typeVersion": 1,
-      "id": "1c29cf66-60a6-4e65-8b40-7b8b42f3047b",
-      "name": "Sticky Note2"
-    },
-    {
-      "parameters": {
-        "content": "## STEP 3: FORMAT DATA  \n\n-->Cleans and structures the analytics for Google Sheets.  \n\n-->Converts raw API data into clear columns for date, views, and clones.",
-        "height": 400,
-        "width": 208,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1248,
-        -208
-      ],
-      "typeVersion": 1,
-      "id": "db290fc7-241a-4a0d-a46b-304e87ab6d67",
-      "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "content": "## STEP 4: LOG DATA  TO SHEETS & GET DATA FOR REPORTING\n\n-->Saves your analytics to Google Sheets for long-term tracking.  \n\n-->Each new report is added as a separate row, preserving your full history over time.",
-        "height": 400,
-        "width": 416,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -816,
-        -112
-      ],
-      "typeVersion": 1,
-      "id": "90eec262-890d-4ff9-994e-2668a75455ff",
+      "id": "6b354c52-e439-4d11-80c4-86294fbda2de",
       "name": "Sticky Note4"
-    },
-    {
-      "parameters": {
-        "content": "## STEP 5: SEND REPORT  \n\n\n-->Summarizes the GitHub performance and sends it to Slack.  \n",
-        "height": 400,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -352,
-        -112
-      ],
-      "typeVersion": 1,
-      "id": "0afeaf4b-46ff-4b46-96c8-b596d737c13c",
-      "name": "Sticky Note5"
     },
     {
       "parameters": {
@@ -388,10 +319,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1200,
-        240
+        1792,
+        32
       ],
-      "id": "6f591c8c-5cb8-4c9e-8eba-c6c5bd02a2ec",
+      "id": "90e43618-4b7e-4ed4-937a-66b172b7389b",
       "name": "Format Views Data"
     },
     {
@@ -401,11 +332,33 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1200,
-        432
+        1792,
+        224
       ],
-      "id": "34085288-9ab1-4055-9909-c5ae8e34c455",
+      "id": "d6f18e74-3a0e-4697-b7de-8b0983175b5d",
       "name": "Format Clones Data"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        144
+      ],
+      "id": "bb884e06-ddc4-4688-8b77-1632ad94c33d",
+      "name": "Trigger."
     }
   ],
   "pinData": {},
@@ -470,17 +423,6 @@
         ]
       ]
     },
-    "Trigger": {
-      "main": [
-        [
-          {
-            "node": "Fetch GitHub Traffic Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Merge Data": {
       "main": [
         [
@@ -524,13 +466,24 @@
           }
         ]
       ]
+    },
+    "Trigger.": {
+      "main": [
+        [
+          {
+            "node": "Fetch GitHub Traffic Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4f66b0c0-fe4f-4acd-8734-3a6302034048",
+  "versionId": "87c398f7-1afc-404c-aa69-18ef994b677e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
