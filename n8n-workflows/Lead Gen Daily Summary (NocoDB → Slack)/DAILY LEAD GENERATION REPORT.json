@@ -13,10 +13,10 @@
       "type": "n8n-nodes-base.nocoDb",
       "typeVersion": 3,
       "position": [
-        176,
-        176
+        1312,
+        112
       ],
-      "id": "42612d6e-dfe4-48ec-b163-ed3dbba98a37",
+      "id": "d612dccb-e1b4-4326-a192-1c6a5a9c5e1e",
       "name": "GET UNSUBSCRIBE",
       "executeOnce": true,
       "credentials": {
@@ -38,10 +38,10 @@
       "type": "n8n-nodes-base.nocoDb",
       "typeVersion": 3,
       "position": [
-        176,
-        -16
+        1312,
+        -80
       ],
-      "id": "4c0c3402-45db-4992-b28b-6d47955ab47c",
+      "id": "26f8cec4-8232-4bfe-9a79-4bf3c781eb7a",
       "name": "Get LEAD GEN SHEET",
       "retryOnFail": true,
       "executeOnce": true,
@@ -65,10 +65,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -48,
-        80
+        1072,
+        16
       ],
-      "id": "749e004d-468e-4806-97b8-c9c6d84849aa",
+      "id": "d612bd6b-2963-460b-8630-e06e2b441c13",
       "name": "TRIGGER"
     },
     {
@@ -76,10 +76,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        400,
-        80
+        1536,
+        16
       ],
-      "id": "cd4bbd28-58fb-499d-8c1b-2ec19dcb1d90",
+      "id": "c13b64b4-128c-4341-8c66-3fbdce3b746f",
       "name": "MERGE TWO SHEETS"
     },
     {
@@ -87,10 +87,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1056,
-        80
+        2192,
+        16
       ],
-      "id": "ee196c11-f841-4df6-96eb-f484904efb70",
+      "id": "ed7c4c9a-b0f7-46e9-b50b-e59cf9eeea92",
       "name": "No Operation, do nothing"
     },
     {
@@ -100,10 +100,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        80
+        1760,
+        16
       ],
-      "id": "65baf19b-5aee-4733-9e2e-bd0a22b6308a",
+      "id": "46fb256c-9727-4df0-a8f7-ab47a8589486",
       "name": "GENERATE LEAD REPORT (DAILY)"
     },
     {
@@ -121,12 +121,12 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        848,
-        80
+        1984,
+        16
       ],
-      "id": "4569b7ee-bf5d-409e-9f14-ae34c11a7587",
+      "id": "f71882bd-3b54-484c-accc-6c69703e256d",
       "name": "SEND SLACK MESSAGE",
-      "webhookId": "4fb5e6f1-4bad-4d85-b60d-0a03b150a1c0",
+      "webhookId": "",
       "credentials": {
         "slackApi": {
           "id": "",
@@ -136,81 +136,49 @@
     },
     {
       "parameters": {
-        "content": "## Step 1: **TRIGGER** \n\n\n-->Runs automatically daily to summarize lead performance.",
-        "height": 256,
-        "width": 192,
+        "content": "## Step 1: **GET DATA** \n\n\n-->Gets DATA from all sheets you work with, in this case, 2.",
+        "height": 480,
+        "width": 672,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -128,
-        -224
+        1024,
+        -208
       ],
       "typeVersion": 1,
-      "id": "bf034c35-1b7d-4ffe-b411-b679d50b4088",
+      "id": "e95ec54d-7836-4374-91c3-2a7a78d78ff5",
       "name": "Sticky Note"
     },
     {
       "parameters": {
-        "content": "## Step 2: **MERGE TWO SHEETS** \n\n\n-->Combines main leads and unsubscribe lists for unified reporting. ",
-        "height": 256,
-        "width": 416,
+        "content": "## Step 2:  **GENERATE LEAD REPORT (DAILY)** \n\n\n--> Calculates engagement, conversions, deliverability metrics,etc and sends report to slack (Code included). ",
+        "height": 480,
+        "width": 400,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        80,
-        -304
+        1728,
+        -208
       ],
       "typeVersion": 1,
-      "id": "bfa9bcc2-8959-4864-9a6a-91c993262f66",
-      "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "content": "## Step 3:  **GENERATE LEAD REPORT (DAILY)** \n\n\n--> Calculates engagement, conversions, and deliverability metrics. ",
-        "height": 256,
-        "width": 224,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        560,
-        -224
-      ],
-      "typeVersion": 1,
-      "id": "32295950-feaf-4b3d-9e47-d33da2f81577",
+      "id": "e6722e30-c840-4fec-a0ab-9fd2d9469615",
       "name": "Sticky Note2"
     },
     {
       "parameters": {
-        "content": "## Step 4:   **SEND TO SLACK** \n\n\n\n\n-->Sends a visual summary of key results to your daily channel. ",
-        "height": 256,
-        "width": 192,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        816,
-        -224
-      ],
-      "typeVersion": 1,
-      "id": "9a975a88-a260-43c0-b98d-19da1d8aab87",
-      "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "content": "## DAILY LEAD GENERATION REPORT\n\n\n## Why?\nManually checking spreadsheets for performance updates slows you down and breaks your focus.  \n\nThis automation ensures your lead-generation insights come to you; not the other way around.  \n\nBy sending a clear, structured daily report straight to Slack (or any other tool you want), it helps you stay proactive, make faster decisions, and maintain full visibility across campaigns without ever opening a sheet.  \n",
-        "height": 688,
+        "content": "## DAILY LEAD GENERATION REPORT\n\n\n## Why?\nManually checking spreadsheets for performance updates wastes time and breaks focus.  \n\nThis automation ensures your lead-generation insights come to you; not the other way around.  \n\nBy sending a clear, structured daily report straight to Slack (or any other tool you want), it helps you stay proactive, make faster decisions, and maintain full visibility across campaigns without ever opening a sheet.  \n",
+        "height": 480,
         "width": 352
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -496,
-        -352
+        624,
+        -208
       ],
       "typeVersion": 1,
-      "id": "ca394afd-f233-4678-9280-c0626f3a1bae",
+      "id": "9de1a9a7-12e3-499c-9d8a-a8a72b1f8f6a",
       "name": "Sticky Note4"
     }
   ],
@@ -299,10 +267,10 @@
     "timeSavedPerExecution": 5,
     "timezone": "Africa/Lagos"
   },
-  "versionId": "f3cdc26d-460f-4a13-98ac-42cbd70af37a",
+  "versionId": "22dd1de5-7660-4b1d-8f96-39e9a1832d40",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+    "instanceId": ""
   },
   "id": "ApItm67BQSMviQRB",
   "tags": [
@@ -311,12 +279,6 @@
       "createdAt": "2025-10-30T14:01:29.686Z",
       "id": "vLLcwhiSm3lgtjpI",
       "name": "PORTFOLIO"
-    },
-    {
-      "updatedAt": "2025-11-02T21:46:43.436Z",
-      "createdAt": "2025-11-02T21:46:43.436Z",
-      "id": "y9jqrrc7FyhdgP55",
-      "name": "NOCODB"
     }
   ]
 }
