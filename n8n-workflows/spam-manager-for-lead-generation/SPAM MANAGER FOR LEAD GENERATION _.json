@@ -12,16 +12,16 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        -1440,
-        -16
+        -2304,
+        272
       ],
-      "id": "348f2e8d-77e9-4ceb-bba5-772a0ba24313",
+      "id": "3bb27522-7756-42eb-be80-841f5b107c1f",
       "name": "ADD UNSUBSCRIBE TO EMAIL",
-      "webhookId": "c24f902d-e991-4b6b-80cb-b809e69a3ba2",
+      "webhookId": "",
       "retryOnFail": true,
       "credentials": {
         "gmailOAuth2": {
-          "id": "oVrbIOoGPQdu5E8M",
+          "id": "",
           "name": "Gmail account"
         }
       }
@@ -30,56 +30,25 @@
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "getAll",
-        "table": "",
         "returnAll": true,
         "options": {}
       },
       "type": "n8n-nodes-base.nocoDb",
       "typeVersion": 3,
       "position": [
-        -3328,
-        272
+        -4112,
+        544
       ],
-      "id": "8978fe4d-d9af-4fe4-ac43-134cf37e6dc5",
+      "id": "3e1cade6-d84e-46ce-adfb-358df4c24ede",
       "name": "MAIN SHEET",
       "executeOnce": true,
-      "retryOnFail": true
-    },
-    {
-      "parameters": {
-        "authentication": "nocoDbApiToken",
-        "operation": "create",
-        "fieldsUi": {
-          "fieldValues": [
-            {
-              "fieldName": "EMAIL",
-              "fieldValue": "={{ $json.snippet.email }}"
-            },
-            {
-              "fieldName": "MESSAGE",
-              "fieldValue": "={{ $json.snippet.snippet }}"
-            },
-            {
-              "fieldName": "DATE",
-              "fieldValue": "={{ new Date().toISOString().split('T')[0] }}"
-            },
-            {
-              "fieldName": "WHERE",
-              "fieldValue": "BAD EMAIL"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.nocoDb",
-      "typeVersion": 3,
-      "position": [
-        -2144,
-        288
-      ],
-      "id": "2467a7e5-1121-4c91-8b51-1dcd8c9dd28b",
-      "name": "ADD TO UNSUBSCRIBE",
       "retryOnFail": true,
-      "executeOnce": true
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "",
+          "name": "NocoDB Token account"
+        }
+      }
     },
     {
       "parameters": {
@@ -88,10 +57,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2160,
-        64
+        -3040,
+        352
       ],
-      "id": "9fbe62ac-c4ca-41ff-a48a-f450a4438fdb",
+      "id": "32987478-6fa0-4af1-a228-506d1de3b155",
       "name": "DATA"
     },
     {
@@ -101,10 +70,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -3056,
-        272
+        -3840,
+        544
       ],
-      "id": "42a7b11d-138f-41c5-b7f7-298224d2c460",
+      "id": "e0c2ec34-f541-4516-ba88-3f533c0300c2",
       "name": "MERGE"
     },
     {
@@ -112,18 +81,16 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -2624,
-        128
+        -3504,
+        416
       ],
-      "id": "6b26f9e0-c63a-4687-aada-82b09daaf232",
+      "id": "ab021db2-f90b-46e9-99bd-7ade97ea512e",
       "name": "No Operation, do nothing1"
     },
     {
       "parameters": {
         "authentication": "nocoDbApiToken",
         "operation": "update",
-        "projectId": "",
-        "table": "",
         "fieldsUi": {
           "fieldValues": [
             {
@@ -140,36 +107,42 @@
       "type": "n8n-nodes-base.nocoDb",
       "typeVersion": 3,
       "position": [
-        -1888,
-        16
+        -2768,
+        304
       ],
-      "id": "25960f73-cde0-4adc-826b-a96b87086625",
+      "id": "12b61410-b706-4e93-a018-37de475581f9",
       "name": "UPDATE SPAM NAME",
       "retryOnFail": true,
-      "executeOnce": true
+      "executeOnce": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "",
+          "name": "NocoDB Token account"
+        }
+      }
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -1440,
-        -208
+        -2304,
+        80
       ],
-      "id": "fd9a13da-3b63-404b-befb-a5ba6bbc0525",
+      "id": "d6dac5e9-8593-4b8a-a34f-206abb2d20ae",
       "name": "No Operation, do nothing2"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * 📧 Extract Email + Message ID from Gmail snippet\n * Example input:\n * {\n *   \"id\": \"19a5c9cd5za12bfa\",\n *   \"snippet\": \"Delivery incomplete... to support@cipher.com.co...\"\n * }\n */\n\nreturn items.map(item => {\n  const text = item.json.snippet || \"\";\n  const messageId = item.json.id || null;\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n\n  // Find all emails in the snippet\n  const emails = text.match(emailRegex) || [];\n\n  return {\n    json: {\n      MESSAGE_ID: messageId,\n      snippet: text,\n      email: emails[0] || null // Return the first matched email\n    }\n  };\n});"
+        "jsCode": "/**\n * 📧 Extract Email + Message ID from Gmail snippet\n * Example input:\n * {\n *   \"id\": \"\",\n *   \"snippet\": \"Delivery incomplete... to su...\"\n * }\n */\n\nreturn items.map(item => {\n  const text = item.json.snippet || \"\";\n  const messageId = item.json.id || null;\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n\n  // Find all emails in the snippet\n  const emails = text.match(emailRegex) || [];\n\n  return {\n    json: {\n      MESSAGE_ID: messageId,\n      snippet: text,\n      email: emails[0] || null // Return the first matched email\n    }\n  };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -3584,
-        272
+        -4368,
+        544
       ],
-      "id": "e87c4c17-4495-4f33-9e78-9627e463d838",
+      "id": "f274460e-3394-46b3-818f-3f2ddfb831a6",
       "name": "EXTRACT EMAIL",
       "retryOnFail": true
     },
@@ -180,10 +153,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1664,
-        16
+        -2528,
+        304
       ],
-      "id": "04e038f0-dc58-467b-8762-93d0421f69e6",
+      "id": "72d95930-533d-44a8-ba05-3a7d1b138a7d",
       "name": "Loop Over Items1"
     },
     {
@@ -193,10 +166,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -2368,
-        272
+        -3248,
+        560
       ],
-      "id": "4fab0b0b-33a0-401e-9d38-59faa9296b3d",
+      "id": "5f1bd35e-9957-47c8-a403-adc4ab7967ee",
       "name": "Loop Over Items2"
     },
     {
@@ -207,15 +180,15 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        -1216,
-        80
+        -2080,
+        368
       ],
-      "id": "7f01f2dc-337b-428c-924c-ea3b9850c95c",
+      "id": "cc35433e-ef69-433d-817d-44eec777c5e7",
       "name": "Mark a message as read",
       "webhookId": "0344d196-a635-4f0b-88fe-c37800cad29c",
       "credentials": {
         "gmailOAuth2": {
-          "id": "oVrbIOoGPQdu5E8M",
+          "id": "",
           "name": "Gmail account"
         }
       }
@@ -249,10 +222,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2784,
-        256
+        -3664,
+        544
       ],
-      "id": "92936806-7900-4c2d-8154-b897d8f96c01",
+      "id": "be8fc34c-bd32-4628-9477-f563cdeecf4a",
       "name": "Already spam?",
       "retryOnFail": true
     },
@@ -274,181 +247,143 @@
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.3,
       "position": [
-        -3824,
-        272
+        -4608,
+        544
       ],
-      "id": "9ed5ea2d-4cea-4900-8eef-1531ee83987f",
+      "id": "13ff3901-bad6-4615-83d6-3e4d891e73d4",
       "name": "CHECK INBOX",
       "retryOnFail": true,
       "credentials": {
         "gmailOAuth2": {
-          "id": "oVrbIOoGPQdu5E8M",
+          "id": "",
           "name": "Gmail account"
         }
       }
     },
     {
       "parameters": {
-        "content": "\n### Step 1: GMAIL TRIGGER\n\n⁠->Monitors your Gmail inbox for bounce or spam messages (like mailer-daemon replies).  \n\n->Includes both spam and trash folders.”\n",
-        "height": 352,
-        "width": 224,
+        "content": "\n### Step 1: GMAIL TRIGGER\n\n⁠->Monitors your Gmail inbox for bounce or spam messages (like mailer-daemon replies) and extracts the email to compare with your outreach sheet\n",
+        "height": 480,
+        "width": 960,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3904,
-        -112
+        -4688,
+        256
       ],
       "typeVersion": 1,
-      "id": "8ee3a9e4-f16f-49d2-bc9c-27b661f3b9d1",
+      "id": "ef0f0d7f-d898-411e-8ac1-353c115edf4c",
       "name": "Sticky Note"
     },
     {
       "parameters": {
-        "content": "### Step 2:  EXTRACT EMAIL\n->Extracts the email addresses from the message body using regex",
-        "height": 352,
-        "width": 224,
+        "content": "### Step 2:  UPDATE SPAM STATUS\n-> Update spam status in your sheets",
+        "height": 624,
+        "width": 1040,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3632,
-        -112
+        -3680,
+        144
       ],
       "typeVersion": 1,
-      "id": "0353339c-5c5a-4ea0-a5ae-d299cd1a6081",
+      "id": "e7d866ef-2051-48a7-b026-88585a9d99af",
       "name": "Sticky Note1"
     },
     {
       "parameters": {
-        "content": "### Step 3: MERGE LOGIC\n-> Compares extracted emails with your DB sheet to find matches automatically.",
-        "height": 352,
-        "width": 224,
+        "content": "### Step 3: GMAIL TAG\n-> Adds \"Unsubscribe\" tag or you can make it \"SPAM\" in GMAIL\n->Marks as read in GMAIL",
+        "height": 864,
+        "width": 672,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3376,
-        -112
+        -2592,
+        -96
       ],
       "typeVersion": 1,
-      "id": "7c721e94-bddc-46cb-84fa-240ec80fa92d",
-      "name": "Sticky Note2"
-    },
-    {
-      "parameters": {
-        "content": "### Step 4: NOCODB UPDATE\n->Marks spam emails in your lead DB or adds them to the unsubscribe list.",
-        "height": 352,
-        "width": 224,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -3120,
-        -112
-      ],
-      "typeVersion": 1,
-      "id": "6dc78d4c-aafb-47af-9e73-f35cb8995b6c",
-      "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "content": "### Step 8: GMAIL TAG\n-> Adds \"Unsubscribe\" tag or you can make it \"SPAM\" in GMAIL\n->Marks as read in GMAIL",
-        "height": 384,
-        "width": 608,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1696,
-        -608
-      ],
-      "typeVersion": 1,
-      "id": "d3bca244-fa8b-4bae-937a-d0608cfe4d1d",
+      "id": "e9869de3-6f6a-4996-b513-b7ec7082611d",
       "name": "Sticky Note4"
     },
     {
       "parameters": {
-        "content": "### Step 5: ALREADY SPAM?\n->If it has already been marked as SPAM in DB, do nothing, if not; continue.",
-        "height": 352,
-        "width": 352,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -2816,
-        -288
-      ],
-      "typeVersion": 1,
-      "id": "95df4e20-7bee-46d1-8ba0-abe856312de5",
-      "name": "Sticky Note5"
-    },
-    {
-      "parameters": {
-        "content": "### Step 6: ADD TO UNSUBSCRIBE SHEET\n->Add to the unsibscribe sheet",
-        "height": 352,
-        "width": 384,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -2416,
-        -352
-      ],
-      "typeVersion": 1,
-      "id": "5dfb9eb0-3cda-4a00-95d9-35ea3e8389e1",
-      "name": "Sticky Note6"
-    },
-    {
-      "parameters": {
-        "content": "### Step 7: SPAM UPDATE\n-> Update to SPAM in the main sheet",
-        "height": 352,
-        "width": 224,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1984,
-        -400
-      ],
-      "typeVersion": 1,
-      "id": "413501d6-9f4d-4087-90a0-f4bcc866e050",
-      "name": "Sticky Note7"
-    },
-    {
-      "parameters": {
-        "content": "## SPAM MANAGER FOR LEAD GENERATION\n\nDesigned for outreach professionals who care about performance, not just volume.\n\nThis workflow keeps your sender reputation high by removing dead, blocked, and invalid emails before they drag down your campaigns.\n\nEvery “Delivery failed” or “Mailbox full” reply is caught and logged automatically ensuring you only contact real, active prospects.\n\nBy keeping your lists clean, you protect your domain score, improve deliverability, and keep your outreach results authentic and sustainable.",
-        "height": 1088,
+        "content": "## SPAM MANAGER FOR LEAD GENERATION\n\n## WHO?\nThis is designed for outreach professionals who care about performance, not just mass sending emails.\n\n## HOW?\nThis workflow keeps your sender reputation high by removing dead, blocked, and invalid emails before they drag down your campaigns.\n\nEvery “Delivery failed” or “Mailbox full” reply is caught and logged automatically ensuring you only contact real, active prospects.\n\n## WHY?\nBy keeping your lists clean, you protect your domain score, improve deliverability, and keep your outreach results authentic and sustainable.",
+        "height": 640,
         "width": 512
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -4528,
-        -656
+        -5264,
+        96
       ],
       "typeVersion": 1,
-      "id": "ab88213d-b8df-434b-af41-519c9fd40005",
+      "id": "66ac7a9f-412d-44c0-8050-cb07de8a700e",
       "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldName": "EMAIL",
+              "fieldValue": "={{ $json.snippet.email }}"
+            },
+            {
+              "fieldName": "MESSAGE",
+              "fieldValue": "={{ $json.snippet.snippet }}"
+            },
+            {
+              "fieldName": "DATE",
+              "fieldValue": "={{ new Date().toISOString().split('T')[0] }}"
+            },
+            {
+              "fieldName": "WHERE",
+              "fieldValue": "BAD EMAIL"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        -3024,
+        576
+      ],
+      "id": "dca0cd60-08a4-4168-9264-7d6e810584be",
+      "name": "ADD TO SPAM",
+      "retryOnFail": true,
+      "executeOnce": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "",
+          "name": "NocoDB Token account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
-    "MAIN SHEET": {
+    "ADD UNSUBSCRIBE TO EMAIL": {
       "main": [
         [
           {
-            "node": "MERGE",
+            "node": "Mark a message as read",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "ADD TO UNSUBSCRIBE": {
+    "MAIN SHEET": {
       "main": [
         [
           {
-            "node": "Loop Over Items2",
+            "node": "MERGE",
             "type": "main",
             "index": 0
           }
@@ -482,17 +417,6 @@
         [
           {
             "node": "Loop Over Items1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "ADD UNSUBSCRIBE TO EMAIL": {
-      "main": [
-        [
-          {
-            "node": "Mark a message as read",
             "type": "main",
             "index": 0
           }
@@ -539,7 +463,7 @@
         ],
         [
           {
-            "node": "ADD TO UNSUBSCRIBE",
+            "node": "ADD TO SPAM",
             "type": "main",
             "index": 0
           }
@@ -585,6 +509,17 @@
           }
         ]
       ]
+    },
+    "ADD TO SPAM": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -598,7 +533,7 @@
     "timeSavedPerExecution": 5,
     "timezone": "Africa/Lagos"
   },
-  "versionId": "aba7a2f8-6db6-4b26-9304-d423594f45b4",
+  "versionId": "3ea4e2c9-138b-41ad-8f6a-060587c41fc0",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
