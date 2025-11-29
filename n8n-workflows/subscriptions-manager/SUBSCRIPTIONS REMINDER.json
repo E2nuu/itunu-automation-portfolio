@@ -1,53 +1,33 @@
 {
-  "name": "SUBSCRIPTIONS REMINDER",
+  "name": "Automate Subscription Renewal Reminders with Google Sheets & Slack",
   "nodes": [
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "triggerAtHour": 9
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        480,
-        1216
-      ],
-      "id": "f4473a03-2258-44b0-b5ac-a4396bbeaa87",
-      "name": "Sub O1",
-      "retryOnFail": true
-    },
     {
       "parameters": {
         "authentication": "serviceAccount",
         "documentId": {
           "__rl": true,
-          "value": "",
+          "value": "1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw",
           "mode": "list",
-          "cachedResultName": "",
+          "cachedResultName": "PS",
           "cachedResultUrl": ""
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
-          "cachedResultName": "SUBSCRIPTIONS",
+          "cachedResultName": "SUB",
           "cachedResultUrl": ""
         },
         "options": {}
       },
-      "type": "",
+      "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        704,
-        1216
+        -2800,
+        1568
       ],
-      "id": "",
-      "name": "",
+      "id": "7cf2c6d6-91ce-4526-834f-a6e125fa0eb5",
+      "name": "Check Sub Sheets1",
       "retryOnFail": true
     },
     {
@@ -57,116 +37,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        928,
-        1216
+        -2576,
+        1568
       ],
-      "id": "9eaeb0c2-17cf-4726-a506-490611ed8f00",
+      "id": "5ad04bda-25c9-49e0-9790-eef881cc20b1",
       "name": "Check Expiration1",
-      "retryOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
-              "leftValue": "={{ $json.daysLeft }}",
-              "rightValue": 10,
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1216,
-        144
-      ],
-      "id": "e08e1a7d-914a-4ab2-9527-1e102de3e33e",
-      "name": "10 days left?1",
-      "retryOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
-              "leftValue": "={{ $json.daysLeft }}",
-              "rightValue": 2,
-              "operator": {
-                "type": "number",
-                "operation": "lte"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1088,
-        2144
-      ],
-      "id": "3abe1f3f-0721-44ca-b219-03838bdf3926",
-      "name": "2 days left?1",
-      "retryOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
-              "leftValue": "={{ $json.daysLeft }}",
-              "rightValue": 5,
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1136,
-        992
-      ],
-      "id": "2bb24a02-dde7-41e9-a7ee-ded71ddb8b68",
-      "name": "5 days left?1",
       "retryOnFail": true
     },
     {
@@ -190,10 +65,10 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        1536,
-        2048
+        -1968,
+        2400
       ],
-      "id": "",
+      "id": "2fb5f60f-f356-4473-93d7-e6b8a1229c82",
       "name": "Send message and wait for response2",
       "webhookId": "",
       "retryOnFail": true
@@ -203,10 +78,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1440,
-        80
+        -1904,
+        432
       ],
-      "id": "06e8d48e-cde9-40dc-8458-81a88fb70fc2",
+      "id": "6ac8187e-0502-4d3e-82a9-2bd963236cfb",
       "name": "No Operation, do nothing4"
     },
     {
@@ -238,10 +113,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1760,
-        2048
+        -1744,
+        2400
       ],
-      "id": "06f96f04-d2d6-4806-9da1-677eea3f7bad",
+      "id": "e3ea99b1-f39f-4f54-896b-0e77c478aa87",
       "name": "PAID?2",
       "retryOnFail": true
     },
@@ -252,10 +127,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1984,
-        2096
+        -1520,
+        2448
       ],
-      "id": "cde1747e-439e-4b4b-bd9b-b3562aff30de",
+      "id": "136ea245-fa4a-4b20-883d-f074d9721665",
       "name": "UPDATE NEXT PAYMENT DATE2",
       "retryOnFail": true
     },
@@ -267,15 +142,15 @@
           "__rl": true,
           "value": "1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw",
           "mode": "list",
-          "cachedResultName": "PERSONAL N8N TASKS",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit?usp=drivesdk"
+          "cachedResultName": "PE",
+          "cachedResultUrl": ""
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
-          "cachedResultName": "SUBSCRIPTIONS",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit#gid=0"
+          "cachedResultName": "SUB",
+          "cachedResultUrl": ""
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -401,10 +276,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2208,
-        2096
+        -1296,
+        2448
       ],
-      "id": "72fce333-6c97-425e-a5f4-fad06414183b",
+      "id": "f8786d4a-037a-4c66-9359-75c1e40f0303",
       "name": "UPDATE SUB SHEET2",
       "retryOnFail": true
     },
@@ -413,10 +288,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1984,
-        1888
+        -1520,
+        2240
       ],
-      "id": "46910b87-f802-48d4-834f-7b31202e74c0",
+      "id": "f58d73a5-9b81-4eb6-8335-7ecc83f707f1",
       "name": "No Operation, do nothing6"
     },
     {
@@ -426,10 +301,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1312,
-        2048
+        -2192,
+        2400
       ],
-      "id": "a2023a04-9ac8-4a14-bddf-2cb730da1883",
+      "id": "70996341-ad29-4bf3-861c-e02667c6f2ad",
       "name": "Loop Over Items3",
       "retryOnFail": true
     },
@@ -462,10 +337,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1808,
-        1088
+        -1696,
+        1440
       ],
-      "id": "ddb1a299-814e-4eb7-9a49-5785c143cd05",
+      "id": "66554eb7-7274-410a-aae5-93bf27c2c97d",
       "name": "PAID?3",
       "retryOnFail": true
     },
@@ -476,10 +351,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2032,
-        1184
+        -1472,
+        1536
       ],
-      "id": "ceefc8f3-b2a4-4d6a-b30a-02eb3abde5d0",
+      "id": "3ad1a693-423c-4a26-bca0-ed91cb8bb0bf",
       "name": "UPDATE NEXT PAYMENT DATE3",
       "retryOnFail": true
     },
@@ -491,15 +366,15 @@
           "__rl": true,
           "value": "1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw",
           "mode": "list",
-          "cachedResultName": "PERSONAL N8N TASKS",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit?usp=drivesdk"
+          "cachedResultName": "PE",
+          "cachedResultUrl": ""
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
-          "cachedResultName": "SUBSCRIPTIONS",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HctWGqcYyxVah0vE_LIhMgI2agVmQq1KFPDwRtiASQw/edit#gid=0"
+          "cachedResultName": "SUB",
+          "cachedResultUrl": ""
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -625,10 +500,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2256,
-        1264
+        -1248,
+        1616
       ],
-      "id": "fce86cdb-770e-4c56-8ff5-1125569747bb",
+      "id": "d4c70fe6-6bda-4e75-8894-f8e00bcfe18d",
       "name": "UPDATE SUB SHEET3",
       "retryOnFail": true
     },
@@ -637,10 +512,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        2256,
-        912
+        -1248,
+        1264
       ],
-      "id": "6b61de5e-060e-4c6c-a5ff-5ce03b73381c",
+      "id": "e858210e-c389-411f-acca-76a46b1cae23",
       "name": "No Operation, do nothing7"
     },
     {
@@ -650,10 +525,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1360,
-        1088
+        -2144,
+        1440
       ],
-      "id": "ba3754dd-fb4b-4897-abc8-92840d4b91d8",
+      "id": "82b4b6d6-09ca-4483-9a8b-b7ae57c54872",
       "name": "Loop Over Items4",
       "retryOnFail": true
     },
@@ -662,10 +537,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1664,
-        128
+        -1408,
+        480
       ],
-      "id": "bcabbf7d-0ceb-4ec3-bf73-48829bb2202b",
+      "id": "d133d157-f83a-4531-9ebc-9e2e6ca00c04",
       "name": "No Operation, do nothing8"
     },
     {
@@ -675,10 +550,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1440,
-        272
+        -1824,
+        624
       ],
-      "id": "072fbc5b-ee8f-4fca-866b-d86d5f3c4d12",
+      "id": "4894d3e5-077d-4eaa-a625-b98ac5f76c9d",
       "name": "Loop Over Items5",
       "retryOnFail": true
     },
@@ -687,10 +562,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1312,
-        2240
+        -2192,
+        2592
       ],
-      "id": "a86bb336-fc57-428e-934d-08b84f45d5ff",
+      "id": "cec43eb7-53f6-497a-8c16-cd1b3a866f60",
       "name": "No Operation, do nothing9"
     },
     {
@@ -708,12 +583,12 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        1664,
-        320
+        -1392,
+        688
       ],
-      "id": "fd04a917-87e0-40d9-a8ed-bab91733b6bc",
+      "id": "2b513b2a-e34f-4959-849c-31fdf5be58d6",
       "name": "Send a message3",
-      "webhookId": "6000714e-2c94-4a15-9b96-dedb1b308391",
+      "webhookId": "",
       "retryOnFail": true
     },
     {
@@ -739,12 +614,12 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        1584,
-        1088
+        -1920,
+        1440
       ],
-      "id": "1c0e0544-9e2c-42ff-a026-497ebb73ac08",
+      "id": "a14583e5-4722-48e8-9231-8c016376ab3d",
       "name": "Send message and wait for response3",
-      "webhookId": "28f90785-39ab-485b-a535-82f73a7a554c",
+      "webhookId": "",
       "retryOnFail": true
     },
     {
@@ -762,12 +637,12 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        2032,
-        992
+        -1472,
+        1344
       ],
-      "id": "c81ebc2b-659b-445c-80da-3edefbc49b89",
+      "id": "25d49942-a3e1-46e7-8b0c-56678a631dfe",
       "name": "Send a message4",
-      "webhookId": "7cf75070-ec5b-49ae-9904-b2dcb53be9c6",
+      "webhookId": "",
       "retryOnFail": true
     },
     {
@@ -785,91 +660,221 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        2432,
-        2176
+        -1072,
+        2528
       ],
-      "id": "9fa5d11e-bd1c-4a7d-bcba-cc1abefe5c63",
+      "id": "09469a3c-fbfa-47fc-9886-11fd60f1cb00",
       "name": "Send a message5",
-      "webhookId": "14ef0a24-c539-452c-bd25-a62736d47ea6",
+      "webhookId": "",
       "retryOnFail": true
     },
     {
       "parameters": {
-        "content": "## Subscriptions Reminder\n**These are for services we pay for that our outside our App/Play store.**  I don't rely on their emails as they came a little too late to prepare for.\n\n\nStep 1 is just a gentle reminder to get you to start making proper preparations.\n\n**Google Sheets**\nThe sheet should have these columns as the code works with these for the calculation of the next payment date and messages. If any is edited, kindly edit all required nodes. \n\n**SERVICE\t\nAMOUNT $$\t\nAMOUNT (XXX)\t-_You can swap with your local currency_\nLAST PAYMENT DATE\t\nRENEWAL DATE\t\nFREQUENCY**-_This  can be monthly/qaterly/annually, depending on your service.\n\n**_Note_**\nYou can create more rows, it's entirely up to you.\n\n\nWhen updating the sheet for the **LAST PAYMENT DATE** in Steps 2&3, use this code as an expression to get today's date: _{{ new Date().toISOString().split('T')[0] }}_\n\n\n\n\n**Slack**\nIn **Steps 2&3**, a response will be needed to move to he next node after the slack node. This can also be edited. Step 2 is an option to either \"Pay\" or \"Not Paid\" as it is still 5 days to payment date, while Step 3 is compulsory you pay because it is less than 2 days to payment.\n\n\n\n**Calculation of Next Payment Date**\n2 days were removed for monthly payments, this means instead of 30 days from the last payment, we made it 28 days. This is just like a soft buffer. You can edit this in the code node.",
-        "height": 2496,
-        "width": 800
+        "content": "## Subscriptions Reminder\n## What is this for?\nGet automated Slack reminders for upcoming subscription renewals using data from Google Sheets. Sends reminders at 10, 5, and 2 days before due dates (can be optimized), and updates renewal dates after payment confirmations.\n\n## Why?\nThis is made for services we pay for that our outside our App/Play store.**  I don't rely on their emails as they came a little too late to prepare for.\n\n\n **Tip:**  \nYou can change the reminder intervals (10, 5, 2 days) by editing the number in each *IF* node.\n\n\n## More Info on Each Step\n\nOnce payment is confirmed:\n→ The next renewal date is recalculated  28 days from the current renewal date; even if you pay 5 days earlier.\n→ The Google Sheet is updated automatically\n\n\n\n**Calculation of Next Payment Date**\n2 days were removed for monthly payments, this means instead of 30 days from the last payment, we made it 28 days. This is just like a soft buffer. You can edit this in the code node if you want it to be exactly 30 days.",
+        "height": 672,
+        "width": 976
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        240,
-        -112
+        -4096,
+        1136
       ],
       "typeVersion": 1,
-      "id": "d7794a30-4c7f-4d68-ba37-038a8ac431cf",
+      "id": "82b37be9-25cc-4043-b077-d4840064bfcf",
       "name": "Sticky Note4"
     },
     {
       "parameters": {
-        "content": "## Step 1: Soft Reminder \n**Default value is 10 days** you can change this depending on your preference.\nThis just sends you a message reminding you of the subscription; amount and remaining days.",
+        "content": "## Step 2: First Reminder_ 10 days left\n\nThis just sends you a message reminding you of the subscription; amount and remaining days.\n\n",
         "height": 640,
         "width": 1488,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1072,
-        -112
+        -2432,
+        240
       ],
       "typeVersion": 1,
-      "id": "7e727f5d-0720-4cf7-9baa-cade2da9c5b0",
+      "id": "0223362b-1314-4efa-93d0-999d95479a53",
       "name": "Sticky Note5"
     },
     {
       "parameters": {
-        "content": "## Step 2: Soft Nudge\n**Default value is 5 days** You can pay now, or click \"not paid\" and wait till the final reminder of 2 days.",
+        "content": "## Step 3: Second Reminder_5 days left\n\n\nThis reminds you payment is due soon.  \n\nMark “Paid” in Slack to update renewal date  \n                              or \n“Not Paid” to wait until the 2-day reminder.\n\n\nIf no action is taken, the workflow waits for the next (final) reminder cycle.",
         "height": 816,
         "width": 1504,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1072,
-        640
+        -2432,
+        992
       ],
       "typeVersion": 1,
-      "id": "adb19623-1bff-4006-8a09-7c4c3f313056",
+      "id": "c072d0e8-b211-482f-8eba-f69932d779fd",
       "name": "Sticky Note6"
     },
     {
       "parameters": {
-        "content": "## Step 3: REAL REMINDER_ YOU HAVE TO PAY\n**Default value is 2days** You have to pay now, and when this action is done and you've confirmed via slack, the next payment date will be auto added to your sheets.",
+        "content": "## Step 4: Last Reminder_2 days left\n\n\nWhen confirmed as paid in Slack, it updates the Google Sheet with the next renewal date.\n  ",
         "height": 800,
         "width": 1520,
         "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1072,
-        1584
+        -2432,
+        1936
       ],
       "typeVersion": 1,
-      "id": "9933c057-18dc-4c1a-906b-e59f2aa5e649",
+      "id": "d5ab4f78-124d-4ee0-b0f5-a85881c0e23a",
       "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
+              "leftValue": "={{ $json.daysLeft }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2384,
+        480
+      ],
+      "id": "5f0a36db-f6f3-461d-b480-3b2276920299",
+      "name": "Check if 10 days left",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
+              "leftValue": "={{ $json.daysLeft }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2368,
+        1344
+      ],
+      "id": "6652b397-c508-4d26-911f-78819537cba8",
+      "name": "Check if 5 days left",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "417b3cdf-a6d2-48c5-97d7-738e889b8371",
+              "leftValue": "={{ $json.daysLeft }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2416,
+        2496
+      ],
+      "id": "9ae9d61f-b3b0-4b14-b638-d59962602600",
+      "name": "Check if 2 days left",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Step 1: Node Checks Renewal Dates\n\n\nYou do not need to update renewal dates after this step, if you have more subscriptions, just update your sheet once and from there, everything will be automated.",
+        "height": 464,
+        "width": 624,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3088,
+        1344
+      ],
+      "typeVersion": 1,
+      "id": "7ee6aa0c-839c-4501-9db6-a63ca0d89b6a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3024,
+        1568
+      ],
+      "id": "54f97559-8909-4660-a00e-86be49b57759",
+      "name": "SUBSCRIPTION",
+      "retryOnFail": true
     }
   ],
   "pinData": {},
   "connections": {
-    "Sub O1": {
-      "main": [
-        [
-          {
-            "node": "Check Sub Sheets1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Check Sub Sheets1": {
       "main": [
         [
@@ -885,71 +890,17 @@
       "main": [
         [
           {
-            "node": "5 days left?1",
+            "node": "Check if 5 days left",
             "type": "main",
             "index": 0
           },
           {
-            "node": "2 days left?1",
+            "node": "Check if 2 days left",
             "type": "main",
             "index": 0
           },
           {
-            "node": "10 days left?1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "10 days left?1": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items5",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "No Operation, do nothing4",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "2 days left?1": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items3",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "No Operation, do nothing9",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "5 days left?1": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items4",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "No Operation, do nothing7",
+            "node": "Check if 10 days left",
             "type": "main",
             "index": 0
           }
@@ -1144,16 +1095,89 @@
           }
         ]
       ]
+    },
+    "Check if 10 days left": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if 5 days left": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if 2 days left": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUBSCRIPTION": {
+      "main": [
+        [
+          {
+            "node": "Check Sub Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d4ed6a3b-0c26-45f0-8456-6e769886759b",
+  "versionId": "6a902e23-1ed0-4d54-b4cb-f1b7b920f302",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
   },
   "id": "sIlvpL5k8GNBlTBk",
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2025-10-30T14:01:29.686Z",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "id": "vLLcwhiSm3lgtjpI",
+      "name": "PORTFOLIO"
+    }
+  ]
 }
