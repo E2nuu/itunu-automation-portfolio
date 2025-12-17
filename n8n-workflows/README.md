@@ -27,6 +27,11 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
 
 - [**GitHub Insights Reporter**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/GitHub%20Insights%20Reporter%20(Sheets%20%E2%86%92%20Slack))  
   Automatically fetches weekly GitHub traffic data (views and clones), logs them into Google Sheets, and sends a summary report to Slack; keeping your project performance insights on autopilot.
+  
+- [**CoinMarketCap Token Discovery with n8n**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/CoinMarketCap%20Token%20Discovery%20with%20n8n%20Workflow)  
+  Automatically discovers cryptocurrency tokens using CoinMarketCap’s free API, cleans and enriches token data (including official websites), and stores the results in a database or sheet; keeping token discovery and research on autopilot.
+
+
 
 - *(More coming soon...)*
 
