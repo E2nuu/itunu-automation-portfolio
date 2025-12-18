@@ -403,7 +403,7 @@
         "operation": "download",
         "fileId": {
           "__rl": true,
-          "value": "https://drive.google.com/file/d/1CZKkiblZV8C15oxbe4eeNUhbhw0lvPRe/view?usp=sharing",
+          "value": "https://drive.google.com/",
           "mode": "url"
         },
         "options": {}
@@ -431,7 +431,7 @@
           "value": "1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE",
           "mode": "list",
           "cachedResultName": "JOB",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/"
         },
         "sheetName": {
           "__rl": true,
@@ -517,14 +517,14 @@
           "value": "1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE",
           "mode": "list",
           "cachedResultName": "JOB",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/"
         },
         "sheetName": {
           "__rl": true,
           "value": 477532830,
           "mode": "list",
           "cachedResultName": "EMAILS",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit#gid=477532830"
+          "cachedResultUrl": "https://docs.google.com/"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -1083,14 +1083,14 @@
           "value": "1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE",
           "mode": "list",
           "cachedResultName": "JOB",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/"
         },
         "sheetName": {
           "__rl": true,
           "value": 477532830,
           "mode": "list",
           "cachedResultName": "Initial Email",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit#gid=477532830"
+          "cachedResultUrl": "https://docs.google.com/"
         },
         "options": {}
       },
