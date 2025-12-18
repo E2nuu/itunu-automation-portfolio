@@ -31,6 +31,8 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
 - [**CoinMarketCap Token Discovery with n8n**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/CoinMarketCap%20Token%20Discovery%20with%20n8n%20Workflow)  
   Automatically discovers cryptocurrency tokens using CoinMarketCap’s free API, cleans and enriches token data (including official websites), and stores the results in a database or sheet; keeping token discovery and research on autopilot.
 
+- [**📧 Automated Initial Outreach Emails with Safety Controls (n8n)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/%F0%9F%93%A7%20Automated%20Initial%20Outreach%20Emails%20with%20Safety%20Controls%20(n8n))  
+  Automatically sends personalized outreach emails from Google Sheets while enforcing strict safety controls such as email validation, spam filtering, daily limits, weekend blocking, human-like delays, and automatic status track
 
 
 - *(More coming soon...)*
