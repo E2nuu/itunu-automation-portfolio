@@ -1,0 +1,1442 @@
+{
+  "name": "📧 Automated Outreach Emails with Safety Controls",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return items.filter(item => {\n  const email = item.json.EMAIL?.trim();\n  const status = item.json.status?.toLowerCase().trim();\n\n  const invalidStatuses = ['hot lead', 'unresponsive', 'spam', 'do not contact'];\n\n  return email && !invalidStatuses.includes(status);\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3056,
+        560
+      ],
+      "id": "89b64ec1-ea43-4607-b45d-f5bdc31e4d89",
+      "name": "Get Contacts with Emails",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": "={{ Number($json.delay) / 1000 }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        320
+      ],
+      "id": "98cded50-307c-4c0b-860e-26e9344be990",
+      "name": "Wait",
+      "webhookId": "6355d635-226f-49da-86f7-5e5c276dafcb",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2e82cac2-bf34-4184-926b-9e6a160a4bc9",
+              "leftValue": "={{ $json.STATUS }}",
+              "rightValue": "SENT ",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1504,
+        256
+      ],
+      "id": "b9c9ef0d-4459-4ed7-a32a-2ed884be31be",
+      "name": "Initial Email NOT Sent?",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// === Daily Email Counter with Weekend Exclusion & Category Tracking ===\n\n// ✅ 1. Get today's date and day of week\nconst now = new Date();\nconst today = now.toISOString().split('T')[0];\nconst day = now.getDay(); // 0 = Sunday, 6 = Saturday\n\n// ✅ 2. Skip weekends automatically\nif (day === 0 || day === 6) {\n  console.log(\"🚫 Weekend detected. Skipping all email sends today.\");\n  return []; // Stop workflow on weekends\n}\n\n// ✅ 3. Set your total daily Gmail quota\nconst totalLimit = 100;  // adjust if needed\n\n// ✅ 4. Access persistent storage (shared across all workflows)\nconst data = $getWorkflowStaticData('global');\n\n// ✅ 5. Reset if new day\nif (!data.sentCountDate || data.sentCountDate !== today) {\n  data.sentCountDate = today;\n  data.sentCount = 0;\n  data.breakdown = { initial: 0, retarget1: 0, retarget2: 0, reply: 0 };\n}\n\n// ✅ 6. Read email type passed from the Set node\nconst emailType = $json.emailType || 'unknown';\n\n// ✅ 7. Stop all if total daily quota is reached\nif (data.sentCount >= totalLimit) {\n  console.log(`🚫 Daily Gmail quota reached (${data.sentCount}/${totalLimit}).`);\n  return [];\n}\n\n// ✅ 8. Define category-specific ratios (adjust to your liking)\nconst ratios = {\n  initial: 0.55,   // 55% for new hot leads\n  retarget1: 0.20, // 20% for first follow-up\n  retarget2: 0.15, // 15% for second follow-up\n  reply: 0.10,     // 10% for ongoing replies\n};\n\n// ✅ 9. Compute local quota per category\nconst localLimit = Math.floor(totalLimit * (ratios[emailType] || 0.25));\n\n// ✅ 10. Skip sending if that category is full\nif (data.breakdown[emailType] >= localLimit) {\n  console.log(`⏸ ${emailType} quota full (${localLimit} max).`);\n  return [];\n}\n\n// ✅ 11. Increment counters\ndata.sentCount += 1;\nif (!data.breakdown[emailType]) data.breakdown[emailType] = 0;\ndata.breakdown[emailType] += 1;\n\n// ✅ 12. Log updates\nconsole.log(`📩 Sent #${data.sentCount}/${totalLimit} | Type: ${emailType}`);\nconsole.log(`📊 Breakdown: ${JSON.stringify(data.breakdown)}`);\n\n// ✅ 13. Allow sending to continue\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        112
+      ],
+      "id": "2ebd600b-a5b0-46e0-bc76-5e81c88a314c",
+      "name": "Check Daily Email Counter",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "010781bc-0f40-4e8a-9146-e8b202843b03",
+              "name": "emailType",
+              "value": "\"initial\"",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1024,
+        320
+      ],
+      "id": "ec30e632-5d3b-4d8f-aa8b-a84f606d445c",
+      "name": "Initial",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2e82cac2-bf34-4184-926b-9e6a160a4bc9",
+              "leftValue": "={{ $json.SPAM }}",
+              "rightValue": "YES",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2192,
+        368
+      ],
+      "id": "2e3376fb-07da-406e-802b-b767d67f35b1",
+      "name": "Is SPAM?",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1232,
+        16
+      ],
+      "id": "0d1f3a64-59f0-4d38-8a85-ead4b07acb75",
+      "name": "Initial Email",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate a random delay between 0 and 60 seconds (0–2 minutes)\nconst delay = Math.floor(Math.random() * 121); // random 0–60 seconds\n\n// Return delay in milliseconds so n8n understands\nreturn {\n  delay: delay * 1000\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        32
+      ],
+      "id": "3a392018-8b0c-4f68-959d-b5bb9bb69bae",
+      "name": "Human wait time1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Full email cleanup + validation + precise block rules\nreturn items.map(item => {\n  let email = (item.json.EMAIL || \"\").trim().toLowerCase();\n  email = email.replace(/[.,]+$/, \"\"); // remove trailing dots/commas\n  item.json.EMAIL = email;\n\n  // Step 1: Strict syntax validation\n  const validEmail =\n    /^(?!.*\\.\\.)([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[A-Za-z]{2,})$/;\n  const match = email.match(validEmail);\n  const domain = match ? match[2] : \"\";\n\n  // Step 2: Blocked full domains\n  const blockedDomains = [\n    \"coingecko.com\",\n    \"coinmarketcap.com\",\n    \"pinksale.finance\",\n    \"pump.fun\",\n    \"domain.com\",\n    \"mysite.com\",\n    \"facebook.com\",\n    \"instagram.com\",\n    \"linkedin.com\",\n    \"twitter.com\",\n    \"binance.com\",\n    \"mexc.com\",\n    \"tiktok.com\",\n  ];\n\n  // Step 3: Blocked partial or exact keyword matches\n  // \"@x.com\" specifically blocks real X (Twitter) addresses, not random \".x.com\" strings\n  const blockedKeywords = [\n    \"pumpfun\", // covers subdomains like \"team.pumpfun.io\"\n    \"@x.com\",  // only blocks if \"@x.com\" appears directly in email\n  ];\n\n  const isBlocked =\n    blockedDomains.includes(domain) ||\n    blockedKeywords.some(k => email.includes(k.toLowerCase()));\n\n  const isValidFormat = !!match;\n  const isValid = isValidFormat && !isBlocked;\n\n  // Step 4: Explanation fields\n  item.json.valid = isValid;\n  item.json.blocked = isBlocked;\n  item.json.reason = !isValidFormat\n    ? \"Invalid format\"\n    : isBlocked\n    ? \"Blocked keyword/domain\"\n    : \"Valid email\";\n\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2672,
+        560
+      ],
+      "id": "8c66e9bc-d6a7-46d7-807d-a4c6c0a58a36",
+      "name": "VALID EMAIL",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4624283a-cb44-445c-a6f2-129fe51f7508",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2432,
+        560
+      ],
+      "id": "46691763-e027-45cd-861d-1e285e0aa37f",
+      "name": "VALID EMAIL?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3f1b5f23-fc22-45a3-820f-a9dbb78e44ec",
+              "leftValue": "={{ $json[\"EMAIL VERIFIED\"] }}",
+              "rightValue": "REACHEABLE",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1712,
+        320
+      ],
+      "id": "f4f8b2cc-9611-4830-93ce-b4ad24d02ff0",
+      "name": "undelivered email?",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d69349ac-3f32-4ecd-a3a6-15a78c65062b",
+              "leftValue": "={{ $json['EMAIL VERIFIED'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1872,
+        464
+      ],
+      "id": "9c2c47fb-d6e3-41bd-bd84-e5ef17efb7f2",
+      "name": "EMAIL VERIFICATION DONE?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        624
+      ],
+      "id": "be3ac56b-6273-4361-bc86-f5008e310cdf",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1792,
+        -64
+      ],
+      "id": "35130e82-dff3-4c1e-874a-ed737b008b81",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        432,
+        592
+      ],
+      "id": "586a18e7-c845-46cd-9c08-b8d8d6702d93",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f513ee99-602f-4bc8-8a99-3716f60a626a",
+              "leftValue": "={{ $json.EMAIL }}",
+              "rightValue": "={{ $('Initial Email').item.json.EMAIL }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -256,
+        240
+      ],
+      "id": "e9e78cba-c918-4265-bd78-b8c8311baac5",
+      "name": "ONLY CHECK EMAIL NEEDED",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3440,
+        16
+      ],
+      "id": "8ee0320f-c939-4a57-bb21-8cd25a6feeb7",
+      "name": "9am Daily",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -432
+      ],
+      "id": "0e9ca099-b679-41af-8373-453dd2d5ecdb",
+      "name": "No Operation, do nothing4"
+    },
+    {
+      "parameters": {
+        "jsCode": "function pickRandom(arr) {\n  return arr[Math.floor(Math.random() * arr.length)];\n}\n\nfunction deriveFocusTag(rawFocus) {\n  if (!rawFocus) return null;\n\n  const focus = rawFocus.toLowerCase();\n\n  if (focus.includes(\"ai\")) return \"AI-driven automation\";\n  if (focus.includes(\"automation\")) return \"workflow automation\";\n  if (focus.includes(\"api\")) return \"API-driven development\";\n  if (focus.includes(\"scaling\")) return \"scaling internal systems\";\n  if (focus.includes(\"product\")) return \"product iteration and delivery\";\n  if (focus.includes(\"efficien\")) return \"operational efficiency\";\n  if (focus.includes(\"tool\")) return \"internal tooling improvements\";\n  if (focus.includes(\"innovation\")) return \"driving innovation\";\n\n  return null; // no confident signal\n}\n\nreturn items.map(item => {\n  const role = item.json[\"ROLE\"] || \"Job Application\";\n  const rawFocus = item.json[\"Company current Focus\"] || \"\";\n  const focusTag = deriveFocusTag(rawFocus);\n\n  /* ---------------- SUBJECT LINES ---------------- */\n\n  const subjectPool = [\n    `Application for ${role}`,\n    `${role} application`,\n    `${role} position`,\n    `Applying for ${role}`,\n    `Application — ${role}`,\n    `Job application for ${role}`,\n    `${role} role application`,\n    `Application: ${role}`,\n    `${role} job application`,\n    `Applying for the ${role} role`,\n    `Application for the ${role} role`,\n    `${role} opportunity application`,\n    `Application regarding ${role}`,\n    `${role} role — application`,\n    `Application submission — ${role}`,\n    `${role} application submission`,\n    `Application for open ${role} position`,\n    `${role} — job application`,\n    `Application for available ${role} role`,\n    `Application for ${role} position`\n  ];\n\n  /* ---------------- OPENING LINE ---------------- */\n\n  const openingLinePool = focusTag\n    ? [\n        `It’s clear your team is focused on ${focusTag}.`,\n        `Your focus on ${focusTag} stood out to me.`,\n        `From what I’ve seen, ${focusTag} is a key priority.`,\n        `The emphasis your team places on ${focusTag} caught my attention.`\n      ]\n    : [\n        `Your team’s recent direction stood out to me.`,\n        `I’ve been following the work your team is doing with interest.`,\n        `It’s clear your team is actively building and iterating.`,\n        `The pace at which your team is moving stood out to me.`\n      ];\n\n  /* ---------------- SIGNATURE ---------------- */\n\n  const signature = `\n<hr style=\"border:none;border-top:1px solid #2c2c2c;margin:14px 0;\">\n\n<p style=\"margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.4;\">\nKind Regards,<br>\n<strong>Itunu Ola</strong><br>\nn8n Automation Specialist\n</p>\n\n<p style=\"margin:10px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;\">\n🧑‍💻 <a href=\"https://github.com/E2nuu/itunu-automation-portfolio/tree/main\" style=\"color:#4da3ff;text-decoration:none;\">GitHub Portfolio</a><br>\n⚙️ <a href=\"https://n8n.io/creators/e2nu/\" style=\"color:#4da3ff;text-decoration:none;\">n8n Creator Portfolio</a><br>\n🛒 <a href=\"https://e2nu.gumroad.com/\" style=\"color:#4da3ff;text-decoration:none;\">Gumroad</a>\n&nbsp;&nbsp;🔗 <a href=\"https://www.linkedin.com/in/itunu-ola-ba7b07156/\" style=\"color:#4da3ff;text-decoration:none;\">LinkedIn</a>\n</p>\n`;\n\n  return {\n    json: {\n      ...item.json,\n      \"Subject Line\": pickRandom(subjectPool),\n      \"Opening Line\": pickRandom(openingLinePool),\n      \"Signature\": signature\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        320
+      ],
+      "id": "49ce39e0-731d-4ab3-bea8-99de19504bd7",
+      "name": "SUBJECT LINES",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "https://drive.google.com/file/d/1CZKkiblZV8C15oxbe4eeNUhbhw0lvPRe/view?usp=sharing",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "id": "db293a22-876e-4c0c-83f4-8ed39a7ec855",
+      "name": "Download file",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        416,
+        304
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "",
+          "name": "LinkedIn Posts"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE",
+          "mode": "list",
+          "cachedResultName": "JOB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 477532830,
+          "mode": "list",
+          "cachedResultName": "Initial Email",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit#gid=477532830"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3120,
+        352
+      ],
+      "id": "68833003-73d3-4b46-b63b-0cabbe06e0a5",
+      "name": "EMAILS SHEET",
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2912,
+        352
+      ],
+      "id": "5a3f979e-0daf-4f6c-8c57-27729e7ffc8c",
+      "name": "10 SECONDS WAIT",
+      "webhookId": "70e59780-2f27-42f0-a9aa-163c15cbf6c0",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2e82cac2-bf34-4184-926b-9e6a160a4bc9",
+              "leftValue": "={{ $json.STATUS }}",
+              "rightValue": "SENT ",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        320
+      ],
+      "id": "f736ceff-a4b3-4a36-bfe5-58817b091621",
+      "name": "Initial Email NOT Sent? SECOND CHECK",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE",
+          "mode": "list",
+          "cachedResultName": "JOB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 477532830,
+          "mode": "list",
+          "cachedResultName": "EMAILS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit#gid=477532830"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DATE SENT": "={{ new Date().toISOString().split('T')[0] }}",
+            "SENT": "={{ 'SENT ✅' }}",
+            "EMAIL": "={{ $('Initial Email NOT Sent? SECOND CHECK').item.json.EMAIL }}"
+          },
+          "matchingColumns": [
+            "EMAIL"
+          ],
+          "schema": [
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "HR Name",
+              "displayName": "HR Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Applied",
+              "displayName": "Applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Opening Line",
+              "displayName": "Opening Line",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Problem Statement",
+              "displayName": "Problem Statement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Value Proposition",
+              "displayName": "Value Proposition",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Proof Point",
+              "displayName": "Proof Point",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Call to Action",
+              "displayName": "Call to Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Valid Email",
+              "displayName": "Valid Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ROLE",
+              "displayName": "ROLE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "COMPANY NAME",
+              "displayName": "COMPANY NAME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Experience Level",
+              "displayName": "Experience Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SPAM",
+              "displayName": "SPAM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SPAM DATE",
+              "displayName": "SPAM DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SPAM REASON",
+              "displayName": "SPAM REASON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "EMAIL VERIFIED",
+              "displayName": "EMAIL VERIFIED",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "EMAIL SMTP VERIFIED",
+              "displayName": "EMAIL SMTP VERIFIED",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "EMAIL SUGGESTION",
+              "displayName": "EMAIL SUGGESTION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "EMAIL TYPE",
+              "displayName": "EMAIL TYPE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SENT",
+              "displayName": "SENT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DATE SENT",
+              "displayName": "DATE SENT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary Pain Point",
+              "displayName": "Primary Pain Point",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SecondaryPain Point",
+              "displayName": "SecondaryPain Point",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company current Focus",
+              "displayName": "Company current Focus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Relevant Case study",
+              "displayName": "Relevant Case study",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Recent Company Focus",
+              "displayName": "Recent Company Focus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Skill Alignmnet Summary",
+              "displayName": "Skill Alignmnet Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RETARGET 1 SENT",
+              "displayName": "RETARGET 1 SENT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RETARGET 1 DATE",
+              "displayName": "RETARGET 1 DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RETARGET 2 SENT",
+              "displayName": "RETARGET 2 SENT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RETARGET 2 DATE",
+              "displayName": "RETARGET 2 DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        752,
+        320
+      ],
+      "id": "b4be98a9-6680-4297-b4d3-991ae37280e6",
+      "name": "UPDATE EMAIL SHEET",
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.EMAIL }}",
+        "subject": "={{ $json[\"Subject Line\"] }}",
+        "message": "=Hi {{ $json[\"HR Name\"] }},\n<br><br>\nTrust you're good! I recently applied to the {{ $json.ROLE }} role via {{ $json.Applied }}.\n<br><br>\n{{ $json[\"Opening Line\"] }}\n<br><br>\n{{ $json[\"Problem Statement\"] }}\n<br><br>\n{{ $json[\"Value Proposition\"] }}\n<br><br>\n{{ $json[\"Proof Point\"] }}\n<br><br>\nKindly find attached to this email my CV for your review.\n<br><br>\n{{ $json.Signature }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          },
+          "senderName": "=Itunu Ola -  {{ $('Initial Email NOT Sent? SECOND CHECK').item.json.ROLE }} Application"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        432,
+        96
+      ],
+      "id": "cea79305-c6a0-442e-93f8-aab30b9efe2f",
+      "name": "SEND INITIAL EMAIL",
+      "webhookId": "d3",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "maxTries": 2,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 📧 AUTOMATED INITIAL COLD OUTREACH EMAILS WITH SAFETY CONTROLS\n\n## HOW?\n\nThis workflow automatically sends personalized emails to contacts\nstored in Google Sheets and NocoDB.\n\nIt includes email validation, spam filtering, daily send limits,\nhuman-like delays, and automatic status updates.\n\n## SETUP STEPS\n1. Connect Google Sheets\n2. Connect Gmail\n3. Connect NocoDB (optional)\n4. Review email limits before activating\n",
+        "height": 1184,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3824,
+        -432
+      ],
+      "typeVersion": 1,
+      "id": "95bfba0d-9c27-4bdc-86f6-44a31a20a226",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 1:  Get Contats From Sheets\n\nThis step pulls contact records from Google Sheets.\n\n-->Only rows with email addresses are considered.\n\n",
+        "height": 656,
+        "width": 432,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3168,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "f0f07d57-2128-4d2b-9533-816d1fc0b8b1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 2:  Clean and Validate Emails\n\n\nThis step:\n• Fixes formatting issues\n• Blocks known bad domains\n• Rejects invalid email formats\n• Flags risky addresses\n\n",
+        "height": 656,
+        "width": 416,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2720,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "22ff2773-9a0d-4eea-8fa1-57a908e7b766",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 3: Spam Check\n\n\nThis step checks if a contact is marked as spam\n\n-->Spam records are skipped immediately to protect your email reputation.\n\n\n",
+        "height": 656,
+        "width": 336,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2272,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "88d10059-24f5-454f-b4f7-f6c0de19d7d6",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 4: Initial Email Status Check\n\nThis step checks if an initial email was already sent.\n\n-->If yes, the workflow skips the contact to avoid duplicate or accidental re-sending.\n\n\n\n",
+        "height": 656,
+        "width": 544,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1904,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "16397514-e1b0-4acc-a9f3-b1844e4d71d3",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 6: Daily Status Check\n\nThis step controls how many emails can be sent per day.\n\nIt:\n• Blocks sending on weekends\n• Enforces daily email limits\n• Tracks counts per email type\n\n\n\n\n",
+        "height": 800,
+        "width": 304,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -768,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "2a808f7c-9015-4c30-9c32-65fbef9dab08",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 5: Human Like Delay\n\nA random delay is added before sending each email.\n\nThis makes the workflow behave more like a human\nand less like a bot, reducing the risk of spam detection\nor account restrictions.\n\n\n\n\n",
+        "height": 800,
+        "width": 512,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "7bb21639-7b9f-4eab-acc5-ebb971833fba",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 8: Subject and Content Generation\n\nThis step generates personalized subject lines\nand opening sentences.\n\n\n\n\n\n\n",
+        "height": 800,
+        "width": 304,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "0c731a75-e623-42ff-9112-7cf3bac441ed",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 9: Send Email\n\nThis step sends the actual email using Gmail.\n\nThe email includes:\n• Personalized subject line\n• Custom opening\n• Main message\n• Signature and links\n\nAttachments can also be included here.\n\n\n\n\n",
+        "height": 800,
+        "width": 384,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "23e62390-7138-46e8-b30d-4a571eb10712",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 10: Update Sheet\n\nAfter an email is sent, this step updates Google Sheets.\n\nIt records:\n• Email sent status\n• Date sent\n• Email address\n\nThis ensures accurate tracking\nand prevents duplicate sends.\n\n\n\n\n",
+        "height": 800,
+        "width": 304,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        608,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "e813f237-ae28-4546-8f2a-5a313a0bbb5e",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 7: Initial Email Check\n\nThis step confirms the correct email record is being processed.\n\n-->It prevents mismatched data before generating content or sending emails.\n\n\n\n",
+        "height": 800,
+        "width": 320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -448,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "dbb6e068-bfda-433d-aa6e-9e78995f2944",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE",
+          "mode": "list",
+          "cachedResultName": "JOB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 477532830,
+          "mode": "list",
+          "cachedResultName": "Initial Email",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ua7aVmykESCwx6JBHBZHDmNyg7tmTkGnaL4WeoptHSE/edit#gid=477532830"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        112
+      ],
+      "id": "4349a640-c900-443a-b6f7-c18d143fd69c",
+      "name": "INITIAL EMAIL SHEET",
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google "
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Contacts with Emails": {
+      "main": [
+        [
+          {
+            "node": "VALID EMAIL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Initial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Email NOT Sent?": {
+      "main": [
+        [
+          {
+            "node": "Initial Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Daily Email Counter": {
+      "main": [
+        [
+          {
+            "node": "INITIAL EMAIL SHEET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial": {
+      "main": [
+        [
+          {
+            "node": "Check Daily Email Counter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is SPAM?": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "EMAIL VERIFICATION DONE?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Email": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Human wait time1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human wait time1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VALID EMAIL": {
+      "main": [
+        [
+          {
+            "node": "VALID EMAIL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VALID EMAIL?": {
+      "main": [
+        [
+          {
+            "node": "Is SPAM?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "undelivered email?": {
+      "main": [
+        [
+          {
+            "node": "Initial Email NOT Sent?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAIL VERIFICATION DONE?": {
+      "main": [
+        [
+          {
+            "node": "undelivered email?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ONLY CHECK EMAIL NEEDED": {
+      "main": [
+        [
+          {
+            "node": "SUBJECT LINES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9am Daily": {
+      "main": [
+        [
+          {
+            "node": "EMAILS SHEET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUBJECT LINES": {
+      "main": [
+        [
+          {
+            "node": "Initial Email NOT Sent? SECOND CHECK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "SEND INITIAL EMAIL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAILS SHEET": {
+      "main": [
+        [
+          {
+            "node": "10 SECONDS WAIT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 SECONDS WAIT": {
+      "main": [
+        [
+          {
+            "node": "Get Contacts with Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Email NOT Sent? SECOND CHECK": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE EMAIL SHEET": {
+      "main": [
+        [
+          {
+            "node": "Initial Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEND INITIAL EMAIL": {
+      "main": [
+        [
+          {
+            "node": "UPDATE EMAIL SHEET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INITIAL EMAIL SHEET": {
+      "main": [
+        [
+          {
+            "node": "ONLY CHECK EMAIL NEEDED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "UNrVZbiiSpgbbt9H",
+    "timezone": "Africa/Lagos"
+  },
+  "versionId": "e5d3a70d-4b98-4ec8-b7f6-d8df07590e64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "JzBm7zPFj4AURwU2",
+  "tags": [
+    {
+      "updatedAt": "2025-10-30T14:01:29.686Z",
+      "createdAt": "2025-10-30T14:01:29.686Z",
+      "id": "vLLcwhiSm3lgtjpI",
+      "name": "PORTFOLIO"
+    },
+    {
+      "updatedAt": "2025-11-25T20:39:12.984Z",
+      "createdAt": "2025-11-25T20:39:12.984Z",
+      "id": "VI8W1vANQZgRV7M5",
+      "name": "SHEETS"
+    },
+    {
+      "updatedAt": "2025-12-15T14:02:22.458Z",
+      "createdAt": "2025-12-15T14:02:22.458Z",
+      "id": "9fXLydrXFV9BUci9",
+      "name": "JOB"
+    }
+  ]
+}
