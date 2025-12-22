@@ -1,4 +1,3 @@
-
 # HTML → PDF Microservice (Self-Hosted)
 
 A **self-hosted HTML to PDF conversion service** built for automation workflows.
@@ -19,6 +18,7 @@ This service is for:
 - Anyone who wants a **self-hosted** alternative to SaaS PDF tools
 
 This service is **not** for:
+
 - Frontend-only usage (it runs on a server)
 - Shared hosting environments
 - Users who cannot run Docker
@@ -35,7 +35,7 @@ When you purchase this product, you receive:
 - A complete **README** with step-by-step setup
 - A prebuilt **n8n workflow** for quick integration
 
-> ⚠️ Source code is **not included**.  
+> ⚠️ **Source code is not included**  
 > The service is distributed as a sealed runtime container.
 
 ---
@@ -70,33 +70,52 @@ chmod +x install.sh start.sh stop.sh
 ./install.sh
 
 # 5. Start the service
-./start.sh
+./start.sh 
+```
 Your service will now be running.
 
-Configuration (API Key & Port)
-Open the .env file:
+## Configuration (API Key & Port)
+
+Open the `.env` file:
+
+```env
 PORT=3005
 API_KEY=change-this-to-a-secret-value
-* PORT → The port your service listens on
-* API_KEY → A secret string required for all requests
-Use a long, random value for your API key.
+```
+- PORT → The port your service listens on
 
-Starting & Stopping the Service
+- API_KEY → A secret string required for all requests
+
+- Use a long, random value for your API key.
+
+## Starting & Stopping the Service
+
 Start the service:
+```
 ./start.sh
+```
 Stop the service:
+```
 ./stop.sh
+```
 Check running containers:
+```
 docker ps
+```
+## Firewall & Port Setup
 
-Firewall & Port Setup
 Make sure your server allows inbound traffic on the chosen port.
+
 Example using UFW:
+```
 sudo ufw allow 3005
 sudo ufw reload
+```
 
-Testing the Service (curl)
+## Testing the Service (curl)
+
 Example request:
+```
 curl -X POST http://localhost:3005/convert \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY" \
@@ -105,60 +124,78 @@ curl -X POST http://localhost:3005/convert \
     "filename": "example.pdf"
   }' \
   --output example.pdf
-If successful, a PDF file will be saved locally.
+```
 
-Using With n8n
+## Using With n8n
+
 This package includes a ready-made n8n workflow.
-HTTP Request Node Settings
-* Method: POST
-* URL: http://YOUR_SERVER_IP:3005/convert
-* Headers:
-    * Content-Type: application/json
-    * x-api-key: YOUR_API_KEY
-* Body Type: JSON
-* Response Format: File
-* Binary Property: data
-Body Example
+
+### HTTP Request Node Settings
+
+* **Method:** `POST`
+* **URL:** `http://YOUR_SERVER_IP:3005/convert`
+* **Headers:**
+    * `Content-Type`: `application/json`
+    * `x-api-key`: `YOUR_API_KEY`
+* **Body Type:** `JSON`
+* **Response Format:** `File`
+* **Binary Property:** `data`
+
+### Body Example
+
+```json
 {
   "html": "<html><body><h1>PDF from n8n</h1></body></html>",
   "filename": "n8n-document.pdf"
 }
-The response will be available as a binary file in n8n.
+```
+## Included n8n Workflow
 
-Included n8n Workflow
-The n8n/html-to-pdf-workflow.json file demonstrates:
-* Sending HTML content
-* Receiving a PDF
-* Saving or forwarding the file
-You can import it directly into n8n.
+The `n8n/html-to-pdf-workflow.json` file demonstrates:
 
-Troubleshooting
-Service not responding
-* Check Docker is running
-* Confirm the port is open
-* Verify your API key
-401 Unauthorized
-* Ensure x-api-key matches .env
-PDF not returned
-* Confirm response format is set to File
-* Check request body is valid JSON
+* **Sending HTML content**: How to structure the JSON payload.
+* **Receiving a PDF**: Handling the binary response from the microservice.
+* **Saving or forwarding the file**: Examples of what to do with the generated PDF (e.g., saving to disk or sending via email).
 
-Security Notes
-* Always use a strong API key
-* Do not expose the port publicly without firewall rules
-* Rotate API keys if compromised
-* This service is intended for private infrastructure
+You can import this file directly into your n8n instance by copying the JSON content and pasting it into the workflow canvas.
 
-License & Usage Terms
-* Single-server usage per purchase
-* No redistribution or resale
-* No reverse engineering
-* No source code access
-* Commercial usage allowed for your own projects
+## Troubleshooting
 
-Support & Updates
-This product includes documentation-based support.
-Updates and fixes may be provided periodically. Check the Gumroad page for announcements.
+* **Service not responding**
+    * Check if Docker is running
+    * Confirm the port is open
+    * Verify your API key
+* **401 Unauthorized**
+    * Ensure `x-api-key` matches the value in your `.env` file
+* **PDF not returned**
+    * Confirm response format is set to **File**
+    * Check that the request body is valid JSON
 
-© Self-hosted HTML → PDF Microservice
+---
 
+## Security Notes
+
+* Always use a **strong API key**.
+* Do not expose the port publicly without **firewall rules**.
+* Rotate API keys immediately if compromised.
+* This service is intended for **private infrastructure** usage.
+
+---
+
+## License & Usage Terms
+
+* Single-server usage per purchase.
+* No redistribution or resale.
+* No reverse engineering.
+* No source code access.
+* **Commercial usage allowed** for your own projects.
+
+---
+
+## Support & Updates
+
+This product includes documentation-based support. Updates and fixes may be provided periodically. 
+
+Check the Gumroad page for announcements.
+
+**© Self-hosted HTML → PDF Microservice**
