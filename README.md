@@ -4,6 +4,16 @@ Welcome!
 This is my personal collection of **automation projects**; built to help businesses, freelancers, and developers simplify work with smart workflows and code.
 
 ---
+## 🧩 Microservices
+
+Self-hosted backend services designed to support automation workflows, internal tools, and API-driven systems.  
+These microservices are built with an **automation-first mindset**, focusing on reliability, isolation, and simple HTTP-based integration.
+
+- [**HTML to PDF Microservice**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/microservices/html-to-pdf)  
+  Automatically converts raw HTML into PDF documents via a secure, self-hosted HTTP service — enabling reliable document generation for automation workflows, backend systems, and internal tools without relying on external PDF SaaS providers.
+
+> More microservices coming soon...
+
 
 ## 🧩 n8n Workflows
 Automations created using [n8n.io](https://n8n.io/creators/e2nu/), an open-source automation platform.
