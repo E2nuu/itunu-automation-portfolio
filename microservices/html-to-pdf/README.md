@@ -10,13 +10,11 @@ Each microservice runs independently on private infrastructure and integrates se
 
 ## 📦 Included Projects
 
-### HTML to PDF Microservice
-A self-hosted HTML → PDF conversion service for automation workflows and backend systems.  
-It exposes a secure HTTP endpoint that accepts raw HTML and returns a generated PDF file — making document generation reliable, consistent, and fully automation-ready.
+- HTML to PDF Microservice  
+Automatically converts raw HTML into PDF documents via a secure, self-hosted HTTP service — enabling reliable document generation for automation workflows, backend systems, and internal tools without relying on external PDF SaaS providers.
 
----
+(More microservices coming soon…)
 
-*(More microservices coming soon…)*
 
 ---
 
