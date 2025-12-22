@@ -10,8 +10,9 @@ Each microservice runs independently on private infrastructure and integrates se
 
 ## 📦 Included Projects
 
-- HTML to PDF Microservice  
-Automatically converts raw HTML into PDF documents via a secure, self-hosted HTTP service — enabling reliable document generation for automation workflows, backend systems, and internal tools without relying on external PDF SaaS providers.
+- **[HTML to PDF Microservice](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/microservices/html-to-pdf)**  
+  Automatically converts raw HTML into PDF documents via a secure, self-hosted HTTP service — enabling reliable document generation for automation workflows, backend systems, and internal tools without relying on external PDF SaaS providers.
+
 
 (More microservices coming soon…)
 
