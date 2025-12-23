@@ -4,6 +4,15 @@ Welcome!
 This is my personal collection of **automation projects**; built to help businesses, freelancers, and developers simplify work with smart workflows and code.
 
 ---
+## 📘 Case Studies  
+In-depth breakdowns of selected projects, focusing on problem-solving, design decisions, and end-to-end delivery of production-ready systems.
+
+- [**HTML → PDF Microservice (Self-Hosted)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/case-studies)  
+  A case study on building, packaging, and distributing a sealed HTML → PDF conversion microservice for automation workflows and backend systems — covering architectural choices, Docker-based distribution, clean-room testing, and lessons learned from shipping a self-hosted product.
+
+> More case studies coming soon…
+---
+
 ## 🧩 Microservices
 
 Self-hosted backend services designed to support automation workflows, internal tools, and API-driven systems.  
@@ -14,7 +23,7 @@ These microservices are built with an **automation-first mindset**, focusing on 
 
 > More microservices coming soon...
 
-
+---
 ## 🧩 n8n Workflows
 Automations created using [n8n.io](https://n8n.io/creators/e2nu/), an open-source automation platform.
 
