@@ -48,9 +48,8 @@ You need:
 - Linux, macOS, or Windows
 - Minimum **2GB RAM** recommended
 - An available TCP port (example: `3005`)
-```md
 > Note: The Docker image includes a headless Chromium runtime for PDF rendering, which increases image size. This is expected for reliable HTML → PDF conversion.
-```
+
 No Node.js, browser installation, or PDF libraries are required on the host system.
 
 ---
@@ -94,6 +93,7 @@ docker ps
 docker stop html-to-pdf
 docker rm html-to-pdf
 ```
+This removes the running container but keeps the Docker image on your system.
 
 ### Configuration (API Key & Port)
 
@@ -116,7 +116,7 @@ curl http://localhost:3005/health \
 ```bash
 { "status": "ok" }
 ```
-If this returns **OK**, the service is ready to use.
+If this returns `{ "status": "ok" }`, the service is ready to use.
 
 
 ## Generate a PDF (API Usage)
