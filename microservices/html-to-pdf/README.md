@@ -48,7 +48,9 @@ You need:
 - Linux, macOS, or Windows
 - Minimum **2GB RAM** recommended
 - An available TCP port (example: `3005`)
-
+```md
+> Note: The Docker image includes a headless Chromium runtime for PDF rendering, which increases image size. This is expected for reliable HTML → PDF conversion.
+```
 No Node.js, browser installation, or PDF libraries are required on the host system.
 
 ---
@@ -86,6 +88,12 @@ docker stop html-to-pdf
 ```bash
 docker ps
 ```
+### Remove the Service Completely
+
+```bash
+docker stop html-to-pdf
+docker rm html-to-pdf
+```
 
 ### Configuration (API Key & Port)
 
@@ -93,7 +101,7 @@ Configuration is done via environment variables.
 
 | Variable | Description |
 | :--- | :--- |
-| **PORT** | Port the service listens on |
+|  **PORT** | Internal port the service listens on (must match Docker `-p` mapping) |
 | **API_KEY** | Secret key required for all requests |
 
 > [!TIP]
@@ -108,6 +116,9 @@ curl http://localhost:3005/health \
 ```bash
 { "status": "ok" }
 ```
+If this returns **OK**, the service is ready to use.
+
+
 ## Generate a PDF (API Usage)
 
 ### Endpoint
@@ -158,7 +169,7 @@ This service integrates cleanly with n8n using the **HTTP Request** node.
 * **Binary Property:** `data`
 
 ### Body Example
-```bash
+```json
 {
   "html": "<html><body><h1>PDF from n8n</h1></body></html>",
   "filename": "n8n-document.pdf"
