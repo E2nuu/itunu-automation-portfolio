@@ -1,10 +1,10 @@
 # HTML → PDF Microservice (Self-Hosted)
 
-A **self-hosted HTML to PDF conversion service** built for automation workflows.
+A **self-hosted HTML to PDF conversion microservice** built for automation workflows, backend systems, and internal tools.
 
-This service lets you send raw HTML to a secure HTTP endpoint and receive a **generated PDF file** in response. It is designed to be reliable, fast, and easy to integrate with tools like **n8n**, backend services, and internal automation pipelines.
+This service allows you to send raw HTML to a secure HTTP endpoint and receive a **generated PDF file** in response. It is designed to be reliable, predictable, and easy to integrate with tools like **n8n**, backend services, and internal automation pipelines.
 
-The service runs entirely on your own server and is protected using an API key.
+The service runs entirely on your own infrastructure and is protected using an API key.
 
 ---
 
@@ -13,13 +13,13 @@ The service runs entirely on your own server and is protected using an API key.
 This service is for:
 
 - Automation builders using **n8n**
-- Developers who need server-side HTML → PDF conversion
-- Teams generating PDFs from emails, reports, invoices, or documents
-- Anyone who wants a **self-hosted** alternative to SaaS PDF tools
+- Backend and product engineers
+- Teams generating PDFs from reports, invoices, emails, or internal documents
+- Anyone who wants a **self-hosted alternative** to PDF SaaS tools
 
 This service is **not** for:
 
-- Frontend-only usage (it runs on a server)
+- Frontend-only usage
 - Shared hosting environments
 - Users who cannot run Docker
 
@@ -27,16 +27,16 @@ This service is **not** for:
 
 ## What You Get
 
-When you purchase this product, you receive:
+This project provides:
 
 - A ready-to-run **Docker-based microservice**
-- Simple start/stop scripts
-- Environment configuration template
-- A complete **README** with step-by-step setup
-- A prebuilt **n8n workflow** for quick integration
+- A documented HTTP API for HTML → PDF generation
+- Environment-based configuration (API key & port)
+- Clear setup and usage instructions
+- Automation-ready design (tool-agnostic)
 
-> ⚠️ **Source code is not included**  
-> The service is distributed as a sealed runtime container.
+> ⚠️ **Source code is intentionally not included**  
+> The service is distributed as a sealed Docker runtime.
 
 ---
 
@@ -44,96 +44,112 @@ When you purchase this product, you receive:
 
 You need:
 
-- A Linux server (Ubuntu 20.04+ recommended)
 - Docker
-- Docker Compose
-- An open TCP port (example: `3005`)
+- Linux, macOS, or Windows
+- Minimum **2GB RAM** recommended
+- An available TCP port (example: `3005`)
 
-No Node.js, browser setup, or PDF libraries are required.
+No Node.js, browser installation, or PDF libraries are required on the host system.
 
 ---
 
-## Quick Start (5 Minutes)
+## Installation (Docker)
+
+Pull the image from Docker Hub:
 
 ```bash
-# 1. Unzip the downloaded folder
-cd html-to-pdf-service
-
-# 2. Copy environment file
-cp .env.example .env
-
-# 3. Edit your API key
-nano .env
-
-# 4. Run setup (one time)
-chmod +x install.sh start.sh stop.sh
-./install.sh
-
-# 5. Start the service
-./start.sh 
+docker pull e2nuu/html-to-pdf-microservice
 ```
-Your service will now be running.
+## Running the Service
 
-## Configuration (API Key & Port)
-
-Open the `.env` file:
-
-```env
-PORT=3005
-API_KEY=change-this-to-a-secret-value
+Start the service using Docker:
+```bash
+docker run -d \
+  -p 3005:3005 \
+  -e PORT=3005 \
+  -e API_KEY=your-secret-key \
+  --name html-to-pdf \
+  e2nuu/html-to-pdf-microservice
 ```
-- PORT → The port your service listens on
-
-- API_KEY → A secret string required for all requests
-
-- Use a long, random value for your API key.
+The service will now be running and listening on port 3005.
 
 ## Starting & Stopping the Service
-
-Start the service:
+### Start
+```bash
+docker start html-to-pdf
 ```
-./start.sh
+### Stop
+```bash
+docker stop html-to-pdf
 ```
-Stop the service:
-```
-./stop.sh
-```
-Check running containers:
-```
+### Check status
+```bash
 docker ps
 ```
-## Firewall & Port Setup
 
-Make sure your server allows inbound traffic on the chosen port.
+### Configuration (API Key & Port)
 
-Example using UFW:
+Configuration is done via environment variables.
+
+| Variable | Description |
+| :--- | :--- |
+| **PORT** | Port the service listens on |
+| **API_KEY** | Secret key required for all requests |
+
+> [!TIP]
+> Choose a long, random API key and keep it private.
+
+## Health Check
+```bash
+curl http://localhost:3005/health \
+  -H "x-api-key: your-secret-key"
 ```
-sudo ufw allow 3005
-sudo ufw reload
+### Expected Response
+```bash
+{ "status": "ok" }
+```
+## Generate a PDF (API Usage)
+
+### Endpoint
+```bash
+POST /html-to-pdf
 ```
 
-## Testing the Service (curl)
-
-Example request:
+### Headers
+```bash
+Content-Type: application/json
+x-api-key: YOUR_API_KEY
 ```
-curl -X POST http://localhost:3005/convert \
+
+### Request Body
+```bash
+{
+  "html": "<html><body><h1>Hello PDF</h1></body></html>",
+  "filename": "example.pdf"
+}
+```
+
+### Example with curl
+```bash
+curl -X POST http://localhost:3005/html-to-pdf \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY" \
   -d '{
-    "html": "<h1>Hello World</h1>",
+    "html": "<html><body><h1>Hello World</h1></body></html>",
     "filename": "example.pdf"
   }' \
   --output example.pdf
 ```
+The response will be a valid PDF file.
 
 ## Using With n8n
 
-This package includes a ready-made n8n workflow.
+This service integrates cleanly with n8n using the **HTTP Request** node.
 
 ### HTTP Request Node Settings
 
 * **Method:** `POST`
-* **URL:** `http://YOUR_SERVER_IP:3005/convert`
+* **URL:** `http://YOUR_SERVER_IP:3005/html-to-pdf`
 * **Headers:**
     * `Content-Type`: `application/json`
     * `x-api-key`: `YOUR_API_KEY`
@@ -142,60 +158,75 @@ This package includes a ready-made n8n workflow.
 * **Binary Property:** `data`
 
 ### Body Example
-
-```json
+```bash
 {
   "html": "<html><body><h1>PDF from n8n</h1></body></html>",
   "filename": "n8n-document.pdf"
 }
 ```
-## Included n8n Workflow
 
-The `n8n/html-to-pdf-workflow.json` file demonstrates:
+## Firewall & Port Setup
 
-* **Sending HTML content**: How to structure the JSON payload.
-* **Receiving a PDF**: Handling the binary response from the microservice.
-* **Saving or forwarding the file**: Examples of what to do with the generated PDF (e.g., saving to disk or sending via email).
+If deploying on a server, ensure the port is allowed.
 
-You can import this file directly into your n8n instance by copying the JSON content and pasting it into the workflow canvas.
-
+Example using UFW:
+```bash
+sudo ufw allow 3005
+sudo ufw reload
+```
 ## Troubleshooting
 
-* **Service not responding**
-    * Check if Docker is running
-    * Confirm the port is open
-    * Verify your API key
-* **401 Unauthorized**
-    * Ensure `x-api-key` matches the value in your `.env` file
-* **PDF not returned**
-    * Confirm response format is set to **File**
-    * Check that the request body is valid JSON
+### Service not responding
+* **Ensure Docker is running**: Check your system's Docker status.
+* **Confirm the container is started**: Run `docker ps` to see if the container is active.
+* **Verify the port mapping**: Ensure your host port (e.g., `3005`) matches the port defined in the `docker run` command.
 
----
+### 401 Unauthorized
+* **Ensure the x-api-key header matches API_KEY**: Double-check that the key provided in your request header matches the one set in your environment variables.
+
+### PDF not returned
+* **Confirm endpoint is `/html-to-pdf`**: Verify that you are sending the request to the correct path.
+* **Ensure response format is set to File**: In tools like n8n, make sure the output is handled as binary/file data.
+* **Check container logs**:
+  ```bash
+  docker logs html-to-pdf
+   ```
+
+   ### Interpreting Container Logs
+To see what is happening inside the service, run:
+`docker logs html-to-pdf`
+
+| Log Message / Code | Meaning | Action |
+| :--- | :--- | :--- |
+| **"Authentication failed" (401)** | The `x-api-key` is missing or incorrect. | Check your request headers and `.env` file. |
+| **"Invalid JSON body" (400)** | The request was sent with broken syntax. | Ensure your HTML is wrapped in a valid JSON object. |
+| **"Navigation timeout"** | The service couldn't render the HTML fast enough. | Check if your HTML is trying to load large external images/scripts. |
+| **"Exited with code 137"** | The container ran out of memory (OOM). | Increase the RAM limit on your Docker host. |
 
 ## Security Notes
 
-* Always use a **strong API key**.
-* Do not expose the port publicly without **firewall rules**.
-* Rotate API keys immediately if compromised.
-* This service is intended for **private infrastructure** usage.
+* **Always use a strong API key**: Avoid simple passwords; use a long, random alphanumeric string.
+* **Do not expose the port publicly**: Use firewall rules (like `ufw` or cloud security groups) to restrict access to trusted IPs only.
+* **Rotate API keys**: If you suspect your key has been leaked, update your environment variables immediately.
+* **Controlled Infrastructure**: This service is intended for use within **private or controlled infrastructure** rather than open public access.
 
 ---
 
-## License & Usage Terms
+## License & Usage
 
-* Single-server usage per purchase.
-* No redistribution or resale.
-* No reverse engineering.
-* No source code access.
-* **Commercial usage allowed** for your own projects.
+* **Personal & Commercial**: Free to use for both personal and commercial projects.
+* **No Redistribution**: You may not redistribute or resell the Docker image.
+* **No Reverse Engineering**: Modification or deconstruction of the service is prohibited.
+* **Closed Source**: Source code is not included by design; the service is provided as a pre-built runtime.
 
 ---
 
-## Support & Updates
+## Author
 
-This product includes documentation-based support. Updates and fixes may be provided periodically. 
+**Built by Itunu** *Automation Engineer & Product Builder*
 
-Check the Gumroad page for announcements.
+* **Email**: [ceo@cexlisting.com](mailto:ceo@cexlisting.com)
+* **Gumroad**: [e2nu.gumroad.com](https://e2nu.gumroad.com/)
+* **n8n Creator Page**: [n8n.io/creators/e2nu/](https://n8n.io/creators/e2nu/)
 
-**© Self-hosted HTML → PDF Microservice**
+> Built with clarity, discipline, and an automation-first mindset.
