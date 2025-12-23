@@ -7,7 +7,7 @@ This is my personal collection of **automation projects**; built to help busines
 ## 📘 Case Studies  
 In-depth breakdowns of selected projects, focusing on problem-solving, design decisions, and end-to-end delivery of production-ready systems.
 
-- [**HTML → PDF Microservice (Self-Hosted)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/case-studies)  
+- [**HTML → PDF Microservice (Self-Hosted)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/case-studies/HTML%20%E2%86%92%20PDF%20Microservice%20(Self-Hosted))  
   A case study on building, packaging, and distributing a sealed HTML → PDF conversion microservice for automation workflows and backend systems — covering architectural choices, Docker-based distribution, clean-room testing, and lessons learned from shipping a self-hosted product.
 
 > More case studies coming soon…
