@@ -1,0 +1,2138 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"batched\": true,\n  \"combinedText\": \"{{ $json.text }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1232,
+        80
+      ],
+      "id": "6cea7da6-a3c9-4de9-87c5-c775bbd281fd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=chat:queue:fixed-session-001"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        848
+      ],
+      "id": "11c6c45f-b22f-4d02-8af4-1e3975cfcefe",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "maxTokens": 20000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        1280
+      ],
+      "id": "465eff0c-bcfc-47da-b053-8526669a0858",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b5b2f0d-215f-4d07-8cfe-650c507bec2f",
+              "name": "result",
+              "value": "={{ $json.result }}",
+              "type": "array"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        848
+      ],
+      "id": "eae38cb0-53b6-4b9e-9468-cdda14f8023e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        448
+      ],
+      "id": "a34fe695-f18e-4403-a44e-2fc1b1b2e9da",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Messages\n{{ $json.result }}\n\nYou are a helpful scheduling assistant. Your name is Tim\n\nYou may receive multiple user messages at once.\nTreat them as a single combined request and respond conversationally.\n\nAvailable tools:\n- get_availability\n- book_appointment\n- cancel_appointment\n- reschedule_appointment\n- schedule_follow_up\n\nGENERAL RULES\n- Ask for the individual's name and refer to them as such in the conversation.\n-Only call a tool when all required information for that action is explicitly known.\n- If any required information is missing, ask the user a follow-up question instead of calling a tool.\n- Do not mention tools, databases, workflows, or system behavior to the user.\n- Never include tool inputs, outputs, or execution details in your response.\n- Only present user-facing text unless you are calling a tool.\n\nCRITICAL BOOKING CONSTRAINT\n- You MUST NOT call book_appointment unless you have a valid start_time.\n- If start_time is missing, unclear, or not explicitly selected by the user, you MUST ask the user to choose a time.\n- Never call book_appointment speculatively or optimistically.\n\nAVAILABILITY RULES\n- You MUST call get_availability for any availability-related question.\n- You are always given the FULL list of available time slots.\n- Never infer or assume availability.\n- A time is available ONLY if it appears in the returned list.\n- A time is unavailable ONLY if it does NOT appear in the returned list.\n\nTIME-SPECIFIC QUESTIONS\n- If the user asks about a specific time before booking:\n  - Call get_availability.\n  - State whether the time appears in the returned list.\n- If the user has already selected a time for booking:\n  - Do NOT re-check availability.\n  - Proceed to booking validation instead.\n\n\nPRESENTATION RULES\n- Always say \"Here are some available appointment times (UTC)\".\n- Never imply the list is complete.\n- Mention the date only if the user specified a date.\n- List times explicitly (times only, not dates unless required).\n- After listing times, ask the user to choose one.\n\nBOOKING RULES\n- Only book an appointment if the user explicitly selects a time from the available slots.\n- Never book based on suggestion, implication, or partial intent.\n- When the user selects a time, treat it as booking intent.\n- Availability must only be enforced at booking time.\n- If exactly one matching slot exists, use its start_time.\n- If the selection cannot be resolved unambiguously, ask for clarification.\n  \nBOOKING VALIDATION RULE\n- Availability lists are advisory snapshots.\n- You MUST attempt to book the selected start_time directly.\n- If booking fails because the slot is no longer available:\n  - Apologize briefly.\n  - Re-fetch availability.\n  - Present the updated list to the user.\n\n\nAPPOINTMENT LOOKUP RULES\n- When the user asks to cancel or reschedule an appointment:\n  - You MUST call get_appointments first.\n  - Use the returned start_time values to identify the correct appointment.\n  - Once identified, use the corresponding appointment_id for cancellation or rescheduling.\n- Do NOT guess appointment IDs.\n- Scheduling a follow-up also requires an appointment_id and follows the same lookup rules as cancel and reschedule.\n CANCELATION RULES\nAPPOINTMENT ID RULES\n- For any action that requires an appointment_id (cancel or reschedule):\n  - You MUST already have a valid appointment_id from a previous system result.\n  - You are NOT allowed to invent, infer, or guess an appointment_id.\n  - If the appointment_id is not explicitly known, you MUST ask the user for clarification.\n\nAfter a successful cancellation:\n- Confirm that the appointment has been cancelled.\n- Reference the appointment time returned by the system, if available.\n- Be clear, concise, and reassuring.\n- Ask if the user needs anything else.\n\nSTART_TIME HANDLING\n- You MUST remember the exact start_time values returned by get_availability.\n- When the user selects a time in any form (e.g. \"3pm\", \"option three\", \"the first one\"),\n  you MUST match it to one of the previously returned start_time values.\n- When calling book_appointment:\n  - start_time MUST be provided\n  - start_time MUST be an ISO 8601 timestamp string\n  - start_time MUST be copied EXACTLY from the availability result\n- You are NOT allowed to invent, reformat, approximate, or guess a start_time.\n- Do NOT call book_appointment without start_time.\n-- Remembered start_time values are used only to interpret user intent,\n  not to re-validate availability.\n\nTIME ZONE RULE (CRITICAL)\n- All times returned by the system (availability, booking, rescheduling, follow-ups) are in UTC.\n- You MUST clearly state that all times are in UTC whenever presenting time slots.\n- When listing available times, always say: \"All times are in UTC.\"\n- Do NOT convert times to the user’s local timezone.\n- Do NOT assume the user’s timezone.\n- If the user expresses confusion about time, briefly remind them that the times are in UTC and they should adjust accordingly.\n\n\nAFTER A SUCCESSFUL BOOKING\n- Confirm the appointment using the start_time returned by the booking tool.\n- State the time clearly in UTC.\n- Do not restate the user's request.\n- Ask if they would like to schedule a follow-up or need anything else.\n- You MUST respond to the user with a confirmation message.\n- Do NOT end the interaction after calling a tool.\n- Use the returned start_time to confirm the appointment in natural language.\n -you SHOULD ask whether the user would like a follow-up reminder.\n - Always remind the user that the confirmed time is in UTC.\n\nFOLLOW-UP RULES\n- A follow-up is a reminder scheduled for a future time.\n- Only schedule a follow-up when the user explicitly asks for one or clearly agrees.\n- Before scheduling a follow-up, you MUST know the correct appointment_id.\n- If you do not know the appointment_id, you MUST call get_appointments first.\n- You MUST know the exact follow_up_at time before calling schedule_follow_up.\n- follow_up_at MUST be a valid ISO 8601 timestamp.\n- Do NOT guess or invent follow-up times or appointment IDs.\n\nAFTER SCHEDULING A FOLLOW-UP\n- Confirm to the user that the follow-up has been scheduled.\n- Do not mention how the follow-up will be delivered.\n- Ask if the user needs anything else.\n- Clearly state the follow-up time in UTC.\n- Remind the user that all times are in UTC.\n-Do not mention the follow up ID",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        48,
+        864
+      ],
+      "id": "f5706cbd-95b6-45c1-a6f3-6fc70be9a2cd",
+      "name": "AI Agent",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=chat:queue:fixed-session-002",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        1280
+      ],
+      "id": "25381135-92b8-404d-a9d0-1a17e9873c84",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=chat:queue:fixed-session-001",
+        "messageData": "={{ $json.text }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        112,
+        32
+      ],
+      "id": "7e27d084-313d-4107-8bef-66d94a1d7d90",
+      "name": "Redis3",
+      "credentials": {
+        "redis": {
+          "id": "",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a94ddb86-b156-48ec-9c99-a5f49a2ed383",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "=10000",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1344,
+        976
+      ],
+      "id": "1fc1edec-24bc-40fd-a720-3fe894983bec",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        1040
+      ],
+      "id": "f1f9ed42-6301-4212-bd60-b47a74ea2933",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "result",
+        "key": "=chat:queue:fixed-session-001",
+        "keyType": "list",
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        976
+      ],
+      "id": "c51ced3d-7259-45e4-8bb7-33f90d40f603",
+      "name": "Redis6",
+      "credentials": {
+        "redis": {
+          "id": "",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4bdcf909-c7c9-4098-8416-404ea2505d27",
+              "name": "result",
+              "value": "={{ $('Edit Fields').item.json.result }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        848
+      ],
+      "id": "0b8a8ce0-1279-41ef-83c1-c86ae5c7fc94",
+      "name": "Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.output || $json.text || '';\n\n// If this looks like an availability list, send as ONE message\nif (text.includes('Here are some available appointment times')) {\n  return [{ json: { text: text.trim() } }];\n}\n\n// Otherwise, keep original behavior (one message per line)\nreturn text\n  .split('\\n')\n  .map(t => t.trim())\n  .filter(Boolean)\n  .map(t => ({ json: { text: t } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        976
+      ],
+      "id": "9e6c3bc8-67a4-44de-be99-c33e413a1750",
+      "name": "SPLIT MESSAGES"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1104,
+        976
+      ],
+      "id": "987ff370-4f21-4b29-965c-b6f8434c5e33",
+      "name": "Send Messages 1 at a time"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Number($json.delay) / 1000 }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        1040
+      ],
+      "id": "e1688c4c-3c6f-449e-89f1-c5e380295687",
+      "name": "Wait1",
+      "webhookId": "",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate a random delay between 0 and 5 seconds\nconst delaySeconds = Math.floor(Math.random() * 6);\n\n// Return delay in milliseconds for n8n\nreturn {\n  delay: delaySeconds * 1000\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        976
+      ],
+      "id": "53350df2-9eb6-4793-a4d8-768087fc2e17",
+      "name": "Human wait time(0-10S)",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-events",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1680,
+        160
+      ],
+      "id": "19531bdb-965b-4758-a931-672b33dde4dc",
+      "name": "WEBHOOK",
+      "webhookId": ""
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        784
+      ],
+      "id": "cac1e7eb-d7bc-404b-963a-28dd514480ef",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1792,
+        976
+      ],
+      "id": "ba470bc4-0ef9-417e-9355-b5785000bbda",
+      "name": "10 Seconds"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        -160
+      ],
+      "id": "76daab98-dc17-41c6-b6fa-823ae756b7db",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Extract and describe any visible text in this image.",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        32
+      ],
+      "id": "609bfa74-cd6c-487a-8ca9-48b14065f7bc",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d01bfa94-31dd-4cde-a5f7-649bb7c56b49",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -336,
+        -160
+      ],
+      "id": "c35b49c2-868c-4e9f-8274-d86c5f3ec3d0",
+      "name": "Audio"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d01bfa94-31dd-4cde-a5f7-649bb7c56b49",
+              "name": "text",
+              "value": "={{ $json['0'].content[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -336,
+        32
+      ],
+      "id": "96609748-8187-47c7-8239-f50c556726cf",
+      "name": "Image"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e4938bd7-1112-46c7-82df-92b6ac569624",
+                    "leftValue": "={{ $json.body.event.files[0].mimetype }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AUDIO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0b00d459-3b83-4acc-bad5-a52b8de6d527",
+                    "leftValue": "={{ $json.body.event.files[0].mimetype }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "IMAGE"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1008,
+        -64
+      ],
+      "id": "940452c3-a7c5-4d4b-a7b0-01056e7265b5",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "98268ec2-e4a5-4656-ab7f-20cadd24a7ed",
+              "leftValue": "={{ $json.body.event.bot_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1456,
+        160
+      ],
+      "id": "98b79698-298f-4811-ab83-6813756449c4",
+      "name": "Event Type"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.event.files[0].url_private_download }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -784,
+        -160
+      ],
+      "id": "ca34016a-fc11-45af-b72f-c909044d5446",
+      "name": "Get Audio",
+      "retryOnFail": true,
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0A7LBDN37V",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "text": "={{ $json.text }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "sendAsUser": "Support"
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1328,
+        976
+      ],
+      "id": "be02fcdc-a500-462a-8470-b4735a0a1211",
+      "name": "Send a Message",
+      "webhookId": "",
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.event.files[0].url_private_download }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -784,
+        32
+      ],
+      "id": "c68a2368-f1eb-4582-98c5-b125f547ca58",
+      "name": "Get Image",
+      "retryOnFail": true,
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1504435f-7ebf-4c2d-ae59-33a98577889e",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "b025f6aa-6c8c-482a-a498-59cec06b1873",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "1a4f6d37-053b-41db-b2ce-aaaf7f410cb6",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        32
+      ],
+      "id": "cdb1cce9-0710-44ea-9c41-fc1fe3edbede",
+      "name": "Simplify",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        336,
+        32
+      ],
+      "id": "3dcc7668-21bd-4bbe-8875-c2f0318ff27d",
+      "name": "No Operation, do nothing3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c0571af-5d45-469c-bcdc-41dd3832841d",
+              "name": "body.event.blocks[0].elements[0].elements[0].text",
+              "value": "={{ $json.body.event.blocks[0].elements[0].elements[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -784,
+        224
+      ],
+      "id": "31c91022-43c1-4acd-ab53-fd4ad39d19c8",
+      "name": "COMBO TEXT"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "39d769bc-6ced-48a7-b67b-c364f88e09f8",
+              "name": "text",
+              "value": "={{ $json.body.event.blocks[0].elements[0].elements[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        224
+      ],
+      "id": "37dffb58-826e-4588-9684-236f3cbe914d",
+      "name": "Normalize COMBO"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "98268ec2-e4a5-4656-ab7f-20cadd24a7ed",
+              "leftValue": "={{ $json.body.event.blocks[0].elements[0].elements[0].text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1008,
+        272
+      ],
+      "id": "5f6d6df7-2be8-4345-9fd7-34d89d933d04",
+      "name": "Event Type1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "action-router",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1760,
+        2096
+      ],
+      "id": "2203cff3-8d83-4a0b-b382-f43b863ad280",
+      "name": "Action Webhook",
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_availability",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5f546cca-a29a-4f43-a108-b5a18118e53a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get_availability"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0d3a00d4-51ac-4a47-952c-b76d3d114b20",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "book_appointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "book_appointment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d272d6fe-4db3-4f3c-9aac-022cee26d227",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "schedule_follow_up",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "schedule_follow_up"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4c459c05-bd02-44f6-a8d0-9f423ef76820",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "cancel_appointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cancel_appointment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5bd920a1-0d11-4742-ba35-1031caf8d145",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "reschedule_appointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reschedule_appointment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "845d87d4-4894-45d2-b7d9-74681b1722d1",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_appointments",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1536,
+        2032
+      ],
+      "id": "971e9266-9626-4c68-84e1-0e6cb9237e05",
+      "name": "ROUTER"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"get_availability\",\n  \"from_date\": \"={{ $json.from_date }}\",\n  \"to_date\": \"={{ $json.to_date }}\",\n  \"limit\": \"={{ $json.limit || 10 }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        -128,
+        1280
+      ],
+      "id": "0845466b-3b6c-482c-811d-cba070478d01",
+      "name": "Availabilty"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all Postgres rows into one array\nreturn [\n  {\n    json: {\n      available_slots: items.map(i => i.json.start_time)\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        1616
+      ],
+      "id": "06a5b257-b0ec-42f8-adbb-c5a1da81f057",
+      "name": "Regularize"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE appointments\nSET status = 'cancelled'\nWHERE id = {{ $json.appointment_id }}\nRETURNING id, start_time;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1088,
+        2192
+      ],
+      "id": "5a7effed-91d9-42f1-8789-00d0a8699e5b",
+      "name": "cancel appointment",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE availability\nSET is_booked = false\nWHERE start_time = '{{ $json.start_time }}';\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -864,
+        2192
+      ],
+      "id": "849dde76-9e29-4086-91ac-98076e06644f",
+      "name": "free availability",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0821916-ebe9-42ff-9dfa-ab504ab75e3d",
+              "name": "appointment_id",
+              "value": "={{ $json.body.appointment_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        2192
+      ],
+      "id": "6786abba-eab8-4627-b300-8b827dd222b1",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT start_time\nFROM availability\nWHERE is_booked = false\nAND (\n  {{ $json.from_date ? \"start_time >= '\" + $json.from_date + \"'\" : \"true\" }}\n)\nAND (\n  {{ $json.to_date ? \"start_time < '\" + $json.to_date + \"'\" : \"true\" }}\n)\nORDER BY start_time\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1312,
+        1616
+      ],
+      "id": "5516d4ab-6f8e-49e3-9a9c-cba5a675dae6",
+      "name": "Availability",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO appointments (user_id, channel_id, start_time)\nVALUES (\n  '{{ $json.body.user_id }}',\n  '{{ $json.body.channel_id }}',\n  '{{ $json.body.start_time }}'\n)\nRETURNING id, start_time;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1312,
+        1808
+      ],
+      "id": "723bfcad-8658-4ad8-9b1b-38f6133d5d33",
+      "name": "Book Apointment",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "cancel_appointment"
+            },
+            {
+              "name": "appointment_id",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `The unique identifier of an existing appointment.\nThis value must be taken from a previous booking or appointment-related result returned by the system.\nDo not invent, guess, or modify this value.\nIf no appointment_id is available, do not call this tool and ask the user instead.`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        1280
+      ],
+      "id": "1cfeff91-c412-495b-8687-22fb4df4574b",
+      "name": "Cancel Apointment"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "=schedule_follow_up"
+            },
+            {
+              "name": "appointment_id",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `The ID of the existing appointment the follow-up is related to.\nThis MUST come from a prior get_appointments result.\nDo NOT guess or invent an appointment ID.`, 'string') }}"
+            },
+            {
+              "name": "user_id",
+              "value": "=fixed-user-001"
+            },
+            {
+              "name": "channel_id",
+              "value": "=web-chat"
+            },
+            {
+              "name": "follow_up_at",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters4_Value', `The exact date and time to send the follow-up message.\nMust be a valid ISO 8601 timestamp (e.g. 2026-01-11T15:30:00Z).\nOnly generate this after the user clearly specifies when they want the follow-up.`, 'string') }}"
+            },
+            {
+              "name": "context",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters5_Value', `A short JSON object describing the purpose of the follow-up.\nInclude relevant context such as reason, summary, or reminder intent.\nKeep it brief and user-focused.`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        128,
+        1280
+      ],
+      "id": "14bf9e95-56c2-4cfa-b6e0-dddf8fb8928e",
+      "name": "Schedule follow up"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO follow_ups (\n  appointment_id,\n  user_id,\n  channel_id,\n  follow_up_at,\n  context,\n  status\n)\nVALUES (\n  {{ $json.body.appointment_id }},\n  '{{ $json.body.user_id }}',\n  '{{ $json.body.channel_id }}',\n  '{{ $json.body.follow_up_at }}',\n  '{{ JSON.stringify($json.body.context) }}'::jsonb,\n  'pending'\n)\nRETURNING id, follow_up_at;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1312,
+        2000
+      ],
+      "id": "13aff03d-ff24-4d96-b7b4-0f094a322fe5",
+      "name": "Follow up",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "reschedule_appointment"
+            },
+            {
+              "name": "appointment_id",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `The unique ID of the existing appointment to be rescheduled.\nThis value MUST come from the get_appointments tool.\nDo NOT invent or guess this value.\nIf no appointment ID is known, do not call this tool.`, 'string') }}"
+            },
+            {
+              "name": "new_start_time",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', `The new appointment start time selected from the available slots.\nThis value MUST come from the most recent get_availability result.\nIt MUST be an ISO 8601 timestamp string.\nDo NOT invent, guess, or reformat this value.`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        1280
+      ],
+      "id": "53e99192-bfe2-4ada-bddc-67b73afd0087",
+      "name": "Reschedule apointment"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "db882339-7b43-471c-920c-0cdbe9d45000",
+              "name": "output",
+              "value": "={{ JSON.parse($json.output).response }}",
+              "type": "string"
+            },
+            {
+              "id": "57b917b0-54c5-4cb4-b09d-a545bab1b5ff",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "c0a9456b-aeee-4b91-a15f-c50e34f8318d",
+              "name": "output",
+              "value": "={{ $json.output.replace(/\\[Used tools:[\\s\\S]*?\\]\\s*/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "cc5d89e8-1a79-4487-bdc0-edbede6ba037",
+              "name": "output",
+              "value": "={{ ($json.output || '').replace(/\\[Used tools:[\\s\\S]*?\\]\\s*/g, '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        976
+      ],
+      "id": "7e948ad3-831a-41d0-b9a5-c873412ef272",
+      "name": "For Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "book_appointment"
+            },
+            {
+              "name": "user_id",
+              "value": "=fixed-user-001"
+            },
+            {
+              "name": "channel_id",
+              "value": "=web-chat"
+            },
+            {
+              "name": "start_time",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters3_Value', `ISO 8601 start_time selected from the most recent availability result.`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        384,
+        1280
+      ],
+      "id": "32525541-ca7d-4187-97dd-a5dcb50abd84",
+      "name": "Book Apointment1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, start_time, status\nFROM appointments\nWHERE user_id = 'fixed-user-001'\n  AND status = 'booked'\nORDER BY start_time;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1312,
+        2576
+      ],
+      "id": "bbaa583c-a157-4240-96bc-ae4a08063a69",
+      "name": "Get Appointment",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT start_time\nFROM appointments\nWHERE id = {{ $json.body.appointment_id }}\n  AND status = 'booked';\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1312,
+        2384
+      ],
+      "id": "d4abd7c2-9eab-4eda-a85a-2be928575006",
+      "name": "mark old appointment",
+      "credentials": {
+        "postgres": {
+          "id": "KhLsQuoBnO8lsGV1",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "get_appointments"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        512,
+        1280
+      ],
+      "id": "fc4a812d-5d46-4e14-b3c4-11bf1c9aaec0",
+      "name": "Get Appointments"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE availability\nSET is_booked = false\nWHERE start_time = '{{ $json.start_time }}';\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1088,
+        2384
+      ],
+      "id": "d71c2c83-75b8-4e0d-801c-20ef9ebece7e",
+      "name": "Free old Slot",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE appointments\nSET start_time = '{{ $('ROUTER').item.json.body.new_start_time }}'\nWHERE id = {{ $('ROUTER').item.json.body.appointment_id }}\nRETURNING id, start_time;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -640,
+        2384
+      ],
+      "id": "d5a0e3bf-6b5d-4d5b-9f2b-0d0840278ee3",
+      "name": "Re-Schedule Appointment",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE availability\nSET is_booked = true\nWHERE start_time = '{{ $('ROUTER').item.json.body.new_start_time }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -864,
+        2384
+      ],
+      "id": "3256b4d5-03d0-482a-afa5-51ae2a562d5e",
+      "name": "Book New Appointment",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "follow-up",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -896,
+        1040
+      ],
+      "id": "0c2e866f-c3ed-413d-8c60-b8c433340cf3",
+      "name": "Followup Webhook",
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1959c4fb-4f6d-402d-8d1d-a40ad73104e3",
+              "name": "result",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        1040
+      ],
+      "id": "e44076cf-e239-4a86-acd7-f1dd489f1374",
+      "name": "Follow Up"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1008,
+        "width": 3920
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1840,
+        -368
+      ],
+      "typeVersion": 1,
+      "id": "c68ea501-8c1e-4126-9cf2-598506b45bed",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "height": 832,
+        "width": 3920
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1840,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "cc371659-405a-4c5c-9610-c6e68bd0bc04",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "height": 1232,
+        "width": 3920
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1840,
+        1504
+      ],
+      "typeVersion": 1,
+      "id": "65395624-0a7d-4cce-b41a-21cad53a7840",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# ENTRY POINT & MEDIA HANDLER\n### Webhook : Listens for Slack Events.\n\n### Respond to Webhook: Sends an immediate 200 OK to prevent Slack timeout retries.\n\n### Media Switch: Detects if the user sent an audio clip or an image.\n\n### AI Vision/Whisper: Transcribes audio or extracts text from images before passing to the agent.",
+        "height": 688,
+        "width": 736
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2592,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "313ab1e3-c6ce-4209-806a-84102b879328",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# 🧠 AI AGENT (TIM THE SCHEDULER)\n### Memory: Maintains a 20-message window using Redis/Simple Memory.\n\n### Instructions: Strictly enforces UTC time, handles booking logic, and requires specific tool outputs before confirming.\n\n# 💾 STATE MANAGEMENT\n### Redis: Used to manage message queues and session states.\n\n### Schedule Trigger: Periodically cleans up or checks the message queue every 10 seconds to ensure no requests are hung.\n\n\n# 💬 HUMANIZED MESSAGING\n### Split Messages: Breaks long AI responses into individual chat bubbles.\n\n### Human Wait Time: Injects a random delay (0–5s) between messages to make \"Tim\" feel less like a bot and more like a person typing.\n\n### Slack Send: Delivers the final response back to the user.",
+        "height": 800,
+        "width": 736
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2592,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "ac52f6d5-4ea4-4735-b6ff-41ce80c4441c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# 🛠️ TOOL EXECUTION ROUTER\nThis section is called by the Agent via HTTP Request Tools.\n\n## ROUTER: A Switch node that directs tool calls to specific Postgres queries.\n\n## Database Actions: Handles the \"Heavy Lifting\" (SQL INSERT/UPDATE) for:\n\n#### Availability Lookups\n\n#### Appointment Booking\n\n#### Cancellations & Rescheduling",
+        "height": 688,
+        "width": 736
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2592,
+        1792
+      ],
+      "typeVersion": 1,
+      "id": "1590dcf3-8af4-4f25-a2fa-c6264e016a59",
+      "name": "Sticky Note5"
+    }
+  ],
+  "connections": {
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Event Type1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "For Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis6": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SPLIT MESSAGES": {
+      "main": [
+        [
+          {
+            "node": "Send Messages 1 at a time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Messages 1 at a time": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Send Messages 1 at a time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human wait time(0-10S)": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WEBHOOK": {
+      "main": [
+        [
+          {
+            "node": "Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Redis6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio": {
+      "main": [
+        [
+          {
+            "node": "Simplify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image": {
+      "main": [
+        [
+          {
+            "node": "Simplify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Type": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a Message": {
+      "main": [
+        [
+          {
+            "node": "Human wait time(0-10S)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Image": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simplify": {
+      "main": [
+        [
+          {
+            "node": "Redis3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COMBO TEXT": {
+      "main": [
+        [
+          {
+            "node": "Normalize COMBO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize COMBO": {
+      "main": [
+        [
+          {
+            "node": "Simplify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Type1": {
+      "main": [
+        [
+          {
+            "node": "COMBO TEXT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action Webhook": {
+      "main": [
+        [
+          {
+            "node": "ROUTER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROUTER": {
+      "main": [
+        [
+          {
+            "node": "Availability",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Book Apointment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Follow up",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "mark old appointment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Availabilty": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cancel appointment": {
+      "main": [
+        [
+          {
+            "node": "free availability",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "cancel appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Availability": {
+      "main": [
+        [
+          {
+            "node": "Regularize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancel Apointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule follow up": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reschedule apointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "For Code": {
+      "main": [
+        [
+          {
+            "node": "SPLIT MESSAGES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Apointment1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Appointment": {
+      "main": [
+        []
+      ]
+    },
+    "mark old appointment": {
+      "main": [
+        [
+          {
+            "node": "Free old Slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Appointments": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Free old Slot": {
+      "main": [
+        [
+          {
+            "node": "Book New Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book New Appointment": {
+      "main": [
+        [
+          {
+            "node": "Re-Schedule Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Followup Webhook": {
+      "main": [
+        [
+          {
+            "node": "Follow Up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Follow Up": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  }
+}
