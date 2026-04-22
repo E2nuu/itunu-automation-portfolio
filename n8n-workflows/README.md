@@ -38,7 +38,8 @@ A collection of automation workflows built with [n8n.io](https://n8n.io) to stre
   An enterprise-grade booking assistant that removes friction from lead intake. It understands audio and image requests, prevents double-booking through strict database rules, and automatically chases unconfirmed appointments with scheduled follow-ups.
 
 - [**📧 Automated Initial Outreach Emails with Safety Controls (n8n & GHL)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/n8n%20%2B%20GHL%20emailoutreach)  
-  A rate-limited, "set-and-forget" outreach engine that sends personalized sequences from Google Sheets. It features human-like sending delays, intelligent reply threading, and instantly halts sequences when a prospect converts via GoHighLevel.
+  A sequenced email architecture featuring algorithmic lead prioritization, dynamic randomized wait states to bypass spam filters, native Gmail API reply threading, and a webhook-driven exit hatch for state management.
+  
 - *(More coming soon...)*
 
 ---
