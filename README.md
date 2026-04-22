@@ -55,7 +55,8 @@ Automations created using [n8n.io](https://n8n.io/creators/e2nu/), an open-sourc
 - [**📧 Automated Initial Outreach Emails with Safety Controls (n8n)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/%F0%9F%93%A7%20Automated%20Initial%20Outreach%20Emails%20with%20Safety%20Controls%20(n8n))  
   Automatically sends personalized outreach emails from Google Sheets while enforcing strict safety controls such as email validation, spam filtering, daily limits, weekend blocking, human-like delays, and automatic status track
 
-
+- [**🧠 Omnichannel AI Scheduling Agent (n8n & OpenAI)**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/n8n-workflows/AI%20Scheduler)  
+  A stateful AI assistant built with a decoupled architecture. Features multimodal intake (Whisper/GPT-4o-vision), Redis session memory, secure PostgreSQL tool routing, and an asynchronous background worker for scheduled reminders.
 > More n8n workflows coming soon...
 
 ---
