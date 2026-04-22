@@ -1,0 +1,142 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "9568737b-6f65-4db6-9a16-6867067cb069",
+      "name": "Every minute"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  id,\n  appointment_id,\n  user_id,\n  channel_id,\n  follow_up_at,\n  context\nFROM follow_ups\nWHERE status = 'pending'\nAND follow_up_at <= NOW();\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        0
+      ],
+      "id": "037ca6a6-52fb-44cf-84da-57e182b4dca4",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "channel_id",
+              "value": "={{ $json.channel_id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{\n  \"⏰ Follow-up Reminder\\n\\n\" +\n  (\n    $json.context.note\n    || \"You asked me to follow up with you.\"\n  ) +\n  \"\\n\\n\" +\n  \"• Appointment ID: \" + $json.appointment_id + \"\\n\" +\n  \"• Scheduled follow-up time: \" + $json.follow_up_at + \"\\n\\n\" +\n  \"You can reschedule, cancel, or ask questions about this appointment anytime.\"\n}}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ \n  {\n    \"type\": \"follow_up\",\n    \"follow_up_id\": $json.id,\n    \"appointment_id\": $json.appointment_id\n  } \n}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        432,
+        0
+      ],
+      "id": "541b95cd-5299-4d25-8fb5-bd4fcf57f380",
+      "name": "Send Follow up message"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE follow_ups\nSET status = 'sent'\nWHERE id = {{ $('Execute a SQL query').item.json.id }};\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        640,
+        0
+      ],
+      "id": "7ba2aae9-7e5d-46fe-9135-3dafaddfcd8e",
+      "name": "Markfollow up",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every minute": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Send Follow up message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow up message": {
+      "main": [
+        [
+          {
+            "node": "Markfollow up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aef76b423886a07b252d20106f8086abdbbd112b2f476427e6dfc77234612f4b"
+  }
+}
