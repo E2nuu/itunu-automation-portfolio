@@ -1,0 +1,708 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 5,
+              "triggerAtMinute": 4
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4208,
+        384
+      ],
+      "id": "ca94008e-832d-4a0a-9dd1-e958402e65cd"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.STATUS }}",
+              "value2": "READY"
+            },
+            {
+              "value1": "={{ $json.INTERESTED }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "name": "IF: Still Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -3536,
+        384
+      ],
+      "id": "7a2e45df-8c95-4bd1-9616-696efe10ec8f"
+    },
+    {
+      "parameters": {},
+      "name": "NoOp: Skip Lead",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -3312,
+        480
+      ],
+      "id": "1916a9fe-e23d-4e55-8ca5-23f24850b801"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.Step_Number }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "1-INITIAL"
+            },
+            {
+              "value2": "2-RETARGET1",
+              "output": 1
+            },
+            {
+              "value2": "3-RETARGET2",
+              "output": 2
+            },
+            {
+              "value2": "4-RETARGET3",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "name": "Switch: Which Step?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -2864,
+        240
+      ],
+      "id": "2382c2f2-e1ea-414d-8f87-8572ca41a3d8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const TOTAL_SLOTS = 4;\nconst todayStr = new Date().toISOString().split('T')[0];\n\nconst eligible = items.filter((item) => {\n  const f = item.json;\n  \n  // 1. Clean the fields\n  const status = String(f.STATUS || \"\").trim().toUpperCase();\n  const interested = String(f.INTERESTED || \"\").trim();\n  const nextDate = String(f.Next_Send_Date || \"\").trim();\n\n  // 2. The Logic\n  const isReady = status === \"READY\";\n  const noInterest = interested === \"\"; // Row 2 fails here because of \"Filled Form\"\n  const isDue = nextDate === \"\" || nextDate <= todayStr;\n\n  return isReady && noInterest && isDue;\n});\n\n// 3. Sort them: Retargets (2, 3, 4) first, then Initials (1)\neligible.sort((a, b) => {\n  const stepA = String(a.json.Step_Number || \"\");\n  const stepB = String(b.json.Step_Number || \"\");\n  return stepB.localeCompare(stepA); \n});\n\n// 4. Return the top 4\nreturn eligible.slice(0, TOTAL_SLOTS);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3760,
+        384
+      ],
+      "id": "2986f544-fe9f-4c97-898e-c1c39681e565",
+      "name": "Randomizer"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3984,
+        384
+      ],
+      "id": "b32973f9-1613-4681-9928-5ed8deb880a5",
+      "name": "LEADS",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ ($itemIndex * 7) + Math.floor(Math.random() * 12) + 2 }}",
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -3088,
+        272
+      ],
+      "id": "9a15367a-af75-4fd4-aa33-7584b62461c2",
+      "name": "Wait",
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Last_Contacted": "={{ $now.toISODate() }}",
+            "row_number": "={{ $('Switch: Which Step?').item.json.row_number }}",
+            "Step_Number": "2-RETARGET1",
+            "Next_Send_Date": "={{ $now.plus({ days: 3 }).toISODate() }}",
+            "MESSAGE_ID": "={{ $json.id }}",
+            "STATUS": "READY"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2416,
+        0
+      ],
+      "id": "febb58eb-a266-4f49-b79e-193e2caafd06",
+      "name": "Update to Step 1",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Last_Contacted": "={{ $now.toISODate() }}",
+            "row_number": "={{ $('Switch: Which Step?').item.json.row_number }}",
+            "Step_Number": "3-RETARGET2",
+            "Next_Send_Date": "={{ $now.plus({ days: 3 }).toISODate() }}",
+            "RETARGET_1": "={{ $now.toISODate() }}",
+            "MESSAGE_ID": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2416,
+        192
+      ],
+      "id": "c2e45ff4-9133-4995-9ac5-1c73db89f094",
+      "name": "Update to Step 2",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Last_Contacted": "={{ $now.toISODate() }}",
+            "row_number": "={{ $('Switch: Which Step?').item.json.row_number }}",
+            "Step_Number": "4-RETARGET3",
+            "Next_Send_Date": "={{ $now.plus({ days: 3 }).toISODate() }}",
+            "RETARGET_2": "={{ $now.toISODate() }}",
+            "MESSAGE_ID": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2416,
+        384
+      ],
+      "id": "6e377a41-43fa-4c45-9dfa-fb2176af5eca",
+      "name": "Update to Step 3",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Last_Contacted": "={{ $now.toISODate() }}",
+            "row_number": "={{ $('Switch: Which Step?').item.json.row_number }}",
+            "Step_Number": "LAST EMAIL",
+            "Next_Send_Date": "={{ $now.plus({ days: 3 }).toISODate() }}",
+            "RETARGET_3": "={{ $now.toISODate() }}",
+            "STATUS": "EXIT",
+            "MESSAGE_ID": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2416,
+        576
+      ],
+      "id": "a1a71f8c-832a-4e1c-8441-61c480ef9df6",
+      "name": "Update to Step 4",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.EMAIL }}",
+        "subject": "=Automating Operations at {{ $json.COMPANY || 'your company' }}",
+        "message": "=<p>Hey {{ $json.FIRST_NAME }},</p>\n\n<p>Most founders and ops leads at companies like <strong>{{ $json.COMPANY || 'yours' }}</strong> are focused on the product, but running the business side often involves a heavy amount of \"operational drag\" that slows everything down.</p>\n\n<p>At <strong>Leak Intelligence</strong>, we architect the backend infrastructure that gets your team out of the weeds. We build the systems that connect your tools so the routine work just happens in the background.</p>\n\n<p>Here are a few ways we’re helping teams reclaim 20+ hours a week:</p>\n<ul>\n  <li><strong>AI Agents:</strong> Deploying voice or text agents to handle frontline triage and support.</li>\n  <li><strong>Automated Bookings:</strong> Seamless calendar routing and automated post-booking workflows.</li>\n  <li><strong>Staff Reporting:</strong> Compiling metrics and team data automatically without manual entry.</li>\n  <li><strong>Administrative Ops:</strong> Syncing your existing platforms so data moves instantly between them.</li>\n</ul>\n\n<p>If manual admin work is eating up hours it shouldn't at <strong>{{ $json.COMPANY || 'your company' }}</strong>, we can help you streamline it.</p>\n\n<p>Are you open to mapping this out? You can grab a spot on Xavier’s calendar here to map this out: <a href=\"https://api.ravecrm.ai/widget/bookings/leakintelconsultationdpsxfq?email={{$json.EMAIL}}\">https://raveintelligence.com/consultation</a></p>\n\n<br>\n<hr style=\"border:none;border-top:1px solid #ddd;width:100%;text-align:left;margin:20px 0\">\n\n<p style=\"font-size: 14px; line-height: 1.5; color: #333; font-family: sans-serif;\">\n  <strong>Sophia Williams</strong> | Sales<br>\n  <a href=\"mailto:sophia.williams@raveint.com\" style=\"color: #1155cc; text-decoration: none;\">sophia.williams@raveint.com</a><br>\n  LeakIntelligence | RaveIntelligence LLP | London, UK\n</p>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Sophie",
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2640,
+        0
+      ],
+      "id": "b84bc247-94bd-41e7-9605-9f454e28162c",
+      "name": "Send a message",
+      "webhookId": "",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.MESSAGE_ID }}",
+        "message": "=<p>Hey {{ $json.FIRST_NAME || 'there' }},</p>\n\n<p>I’m just following up on my previous note. I know things move fast at <strong>{{ $json.COMPANY || 'your company' }}</strong>, but I wanted to make sure we didn't get buried.</p>\n\n<p>To be clear, <strong>Leak Intelligence</strong> isn't just another plug-and-play tool. We architect the actual backend infrastructure that connects your specific stack. While our work is bespoke to your needs, here are a few recent examples of what we’ve built for teams:</p>\n\n<ul>\n  <li><strong>Custom AI Agents:</strong> Voice or text agents for frontline triage and support.</li>\n  <li><strong>Automated Bookings:</strong> Complex calendar routing and post-call workflows.</li>\n  <li><strong>Real-time Reporting:</strong> Auto-compiling metrics without any manual data entry.</li>\n  <li><strong>Administrative Ops:</strong> Syncing your entire stack so data moves instantly behind the scenes.</li>\n</ul>\n\n<p><strong>We aren't limited to these</strong>; essentially, if your team is losing hours to manual \"middleware\" work that shouldn't exist, we can automate it.</p>\n\n<p>Are you open to mapping out your current bottlenecks? You can grab a spot on Xavier’s calendar here: <a href=\"https://api.ravecrm.ai/widget/bookings/leakintelconsultationdpsxfq?email={{$json.EMAIL}}\">https://api.ravecrm.ai/widget/bookings/leakintelconsultation</a></p>\n\n<p>Best,<br>\nSophia</p>\n\n<br>\n<hr style=\"border:none;border-top:1px solid #ddd;width:100%;text-align:left;margin:20px 0\">\n\n<p style=\"font-size: 14px; line-height: 1.5; color: #333; font-family: sans-serif;\">\n  <strong>Sophia Williams</strong> | Sales<br>\n  <a href=\"mailto:sophia.williams@raveint.com\" style=\"color: #1155cc; text-decoration: none;\">sophia.williams@raveint.com</a><br>\n  LeakIntelligence | RaveIntelligence LLP | London, UK\n</p>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Sophie",
+          "replyToSenderOnly": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2640,
+        192
+      ],
+      "id": "2c4c4c64-212c-43e6-9b69-bf8294a69d0a",
+      "name": "Send Retarget 1",
+      "webhookId": "",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.MESSAGE_ID }}",
+        "message": "=<p>Hey {{ $json.FIRST_NAME || 'there' }},</p>\n\n<p>Quick question: how much time is your team at <strong>{{ $json.COMPANY || 'your company' }}</strong> currently spending on manual admin work, staff reporting, or managing calendar bookings every week?</p>\n\n<p>Most teams we talk to are losing 15–20 hours per person to these exact bottlenecks. At <strong>Leak Intelligence</strong>, we deploy custom automation infrastructure to handle the \"heavy lifting\" so your team can actually focus on growth, not data entry. Specifically:</p>\n\n<ul>\n  <li><strong>Voice/Text AI Agents:</strong> To handle frontline triage and triage support.</li>\n  <li><strong>Low-code Workflows:</strong> To connect your tools so they talk to each other.</li>\n  <li><strong>Automated Reporting:</strong> To get your data in front of you without manual exports.</li>\n</ul>\n\n<p>If your internal operations feel unnecessarily slow right now, I'd love to show you how we can streamline things.</p>\n\n<p>You can grab a spot on Xavier’s calendar here to map this out: <a href=\"https://api.ravecrm.ai/widget/bookings/leakintelconsultationdpsxfq?email={{$json.EMAIL}}\">https://api.ravecrm.ai/widget/bookings/leakintelconsultation</a></p>\n\n<p>Best,<br>\nSophia</p>\n\n<br>\n<hr style=\"border:none;border-top:1px solid #ddd;width:100%;text-align:left;margin:20px 0\">\n\n<p style=\"font-size: 14px; line-height: 1.5; color: #333; font-family: sans-serif;\">\n  <strong>Sophia Williams</strong> | Sales<br>\n  <a href=\"mailto:sophia.williams@raveint.com\" style=\"color: #1155cc; text-decoration: none;\">sophia.williams@raveint.com</a><br>\n  LeakIntelligence | RaveIntelligence LLP | London, UK\n</p>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Sophie",
+          "replyToSenderOnly": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2640,
+        384
+      ],
+      "id": "f477a39d-5d8e-4e31-a6a5-b021e18f311b",
+      "name": "Send Retarget ",
+      "webhookId": "",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.MESSAGE_ID }}",
+        "message": "=<p>Hey {{ $json.FIRST_NAME || 'there' }},</p>\n\n<p>When companies scale, the frontend usually looks great; but the backend often turns into a \"manual mess\" of workarounds and disconnected apps. <strong>{{ $json.COMPANY || 'Your company' }}</strong> shouldn't be slowed down by administrative drag.</p>\n\n<p>At <strong>Leak Intelligence</strong>, we build the automation infrastructure that fixes this. Instead of throwing more human hours at staff reporting or calendar routing, we deploy low-code systems and AI agents to handle the heavy lifting automatically.</p>\n\n<p>We connect the dots across your current tech stack so the routine work just happens in the background. Are you looking at upgrading your internal ops this quarter?</p>\n\n<p>If you're open to a free consultation, you can grab a spot on Xavier’s calendar here: <a href=\"https://api.ravecrm.ai/widget/bookings/leakintelconsultationdpsxfq?email={{$json.EMAIL}}\">https://api.ravecrm.ai/widget/bookings/leakintelconsultation</a></p>\n\n<p>Best,<br>\nSophia</p>\n\n<br>\n<hr style=\"border:none;border-top:1px solid #ddd;width:100%;text-align:left;margin:20px 0\">\n\n<p style=\"font-size: 14px; line-height: 1.5; color: #333; font-family: sans-serif;\">\n  <strong>Sophia Williams</strong> | Sales<br>\n  <a href=\"mailto:sophia.williams@raveint.com\" style=\"color: #1155cc; text-decoration: none;\">sophia.williams@raveint.com</a><br>\n  LeakIntelligence | RaveIntelligence LLP | London, UK\n</p>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Sophie",
+          "replyToSenderOnly": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2640,
+        576
+      ],
+      "id": "b6d96d95-8f19-4f59-816f-ee52a3271b9c",
+      "name": "Send Retarget 3",
+      "webhookId": "",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3312,
+        288
+      ],
+      "id": "56d9168f-155a-4d23-8449-6bc11d2a8d3e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2192,
+        368
+      ],
+      "id": "ebc752cb-4fec-4d93-b076-7ce63090035d",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "name": "NoOp: Skip Lead1",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -3088,
+        80
+      ],
+      "id": "89dd7fa5-77e5-4dc8-848a-a6f51292809a"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "LEADS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Still Ready?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: Skip Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Which Step?": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Retarget 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Retarget ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Retarget 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Randomizer": {
+      "main": [
+        [
+          {
+            "node": "IF: Still Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LEADS": {
+      "main": [
+        [
+          {
+            "node": "Randomizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Switch: Which Step?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update to Step 1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update to Step 2": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update to Step 3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update to Step 4": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update to Step 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Retarget 1": {
+      "main": [
+        [
+          {
+            "node": "Update to Step 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Retarget ": {
+      "main": [
+        [
+          {
+            "node": "Update to Step 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Retarget 3": {
+      "main": [
+        [
+          {
+            "node": "Update to Step 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "NoOp: Skip Lead1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  }
+}
