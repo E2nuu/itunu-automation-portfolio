@@ -2,7 +2,7 @@
 
 A robust, rate-limited email outreach system built to send personalized sequences from Google Sheets while preventing spam triggers and duplicate sends.
 
-🔗 **[Download the Webhook JSON here](https://github.com/E2nuu/itunu-automation-portfolio/blob/main/n8n-workflows/n8n%20%2B%20GHL%20emailoutreach/GHL%20-%20n8n%20webhook.json)** 🔗 **[Download the Campaign Roller JSON here](https://github.com/E2nuu/itunu-automation-portfolio/blob/main/n8n-workflows/n8n%20%2B%20GHL%20emailoutreach/campaign-roller.json)**
+🔗 **[Download the Webhook JSON here](https://github.com/E2nuu/itunu-automation-portfolio/blob/main/n8n-workflows/n8n%20%2B%20GHL%20emailoutreach/GHL%20-%20n8n%20webhook.json)** 🔗 **[Download the Campaign Roller JSON here](https://github.com/E2nuu/itunu-automation-portfolio/blob/main/n8n-workflows/n8n%20%2B%20GHL%20emailoutreach/mainworkflow.json)**
 
 ## 🏗️ System Overview
 This automation serves as a "set-and-forget" outreach engine. Rather than blasting hundreds of emails at once and ruining domain reputation, it slowly processes leads, randomizes send times, sequences replies correctly, and stops instantly when a prospect converts.
