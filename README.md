@@ -11,6 +11,18 @@ In-depth breakdowns of selected projects, focusing on problem-solving, design de
   A case study on building, packaging, and distributing a sealed HTML → PDF conversion microservice for automation workflows and backend systems — covering architectural choices, Docker-based distribution, clean-room testing, and lessons learned from shipping a self-hosted product.
 
 > More case studies coming soon…
+
+---
+
+## 📣 Marketing Tools
+
+Practical customer-engagement, marketing-operations, and workflow tools designed to make outreach work more organized, measurable, and reliable.
+
+- [**Customer Engagement Workflow Portal**](./marketing-tools/customer-engagement-workflow-portal)  
+  A full-stack Google Apps Script and Google Sheets application for synthetic customer re-engagement workflows. It includes role-aware workspaces for agents, team leads, executives, and administrators; queue and follow-up management; consent-aware interaction records; audit trails; responsive dashboards; executive charts; and a synthetic demo environment.
+
+> More marketing tools coming soon…
+
 ---
 
 ## 🧩 Microservices
