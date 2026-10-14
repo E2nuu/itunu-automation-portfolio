@@ -1,0 +1,11 @@
+{
+  "name": "nexaflow-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Clean-room Google Apps Script customer engagement workflow portfolio project.",
+  "scripts": {
+    "test": "node tests/rules.test.cjs && node tests/contract.test.cjs"
+  },
+  "engines": { "node": ">=20" }
+}
+
