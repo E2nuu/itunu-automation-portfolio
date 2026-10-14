@@ -9,7 +9,7 @@ The projects here focus on the work behind a campaign: assigning follow-ups, rec
 
 ## 🌟 Featured Project
 
-### [**Customer Engagement Workflow Portal**](./customer-engagement-workflow-portal)
+### [**Customer Engagement Workflow Portal**](https://github.com/E2nuu/itunu-automation-portfolio/tree/main/marketing-tools/customer-engagement-workflow-portal)
 
 A full-stack Google Apps Script portfolio application that models a consent-aware customer re-engagement workflow using synthetic data only.
 
